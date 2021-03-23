@@ -16,6 +16,20 @@ Here, we define our and set-up our visual grid,
 our logical algorithm (e.g. should the agents move randomly or simultaneously?)
 
 '''
+
+def pouring_time(self):
+    sump = 0
+    for a in self.employees:
+        sump += a.pouring_time
+    return sump
+
+def busy_employees(self):
+    busy = 0
+    for a in self.employees:
+        if a.busy == 1:
+            busy+=1
+    return busy
+
 class Model(Model):
     def __init__(self, N, height, width):
         super().__init__()
@@ -29,22 +43,35 @@ class Model(Model):
         #Schedule (the logical grid)
         self.schedule = SimultaneousActivation(self)
 
+        #Datacollector to collect our data (pouring time, dispatch time, etc)
+        self.datacollector = DataCollector(model_reporters={"pouring_time": lambda m: pouring_time(self),
+                                                            "busy": lambda m: busy_employees(self)})
+
+
         #Initiate minute, hour and day
         self.minute_count = 1
         self.hour_count = 1
         self.day_count = 1
 
         #The location of the beer stalls
-        self.stall_positions = [(15,6),(40,6),(15,44),(40,44)]
+        self.stall_positions = [(10,6),(40,6),(15,44),(40,44)]
+
+        self.employees = []
+        self.desk_pos = []
 
         setUpGuests(self,N)
         setUpScene(self)
         setUpStalls(self)
         setUpEmployees(self)
+        setUpFence(self)
 
     def step(self):
-
         self.schedule.step()
+        self.datacollector.collect(self)
+        self.minute_count += 1
+        if self.minute_count%60 == 0:
+            self.hour_count += 1
+
 
 
 def setUpGuests(self,N):
@@ -72,6 +99,9 @@ def setUpStalls(self):
         x,y = pos.pop()
         self.grid.place_agent(newAgent,(x,y))
 
+        desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
+        self.desk_pos = self.desk_pos + desk_pos
+
 def setUpEmployees(self):
     employees = []
     for pos in self.stall_positions:
@@ -91,6 +121,27 @@ def setUpEmployees(self):
             self.schedule.add(newAgent)
             x,y = stalls[e]
             self.grid.place_agent(newAgent,(x,y))
+            self.employees.append(newAgent)
         counter += 5
 
+def setUpFence(self):
+    ids = [i for i in range (3000,3100)]
+    #Positions of horizontal fence
+    pos_vertical_fence = [(2,i) for i in range(16,33)]
+    pos_horizontal_fence = [(0,16),(1,16),(0,32),(1,32)]
+
+    for pos in pos_vertical_fence:
+        newAgent = ac.fence(ids.pop(), self)
+        self.schedule.add(newAgent)
+        newAgent.orientation = 'v'
+        x,y = pos
+        self.grid.place_agent(newAgent,(x,y))
+
+
+    for pos in pos_horizontal_fence:
+        newAgent = ac.fence(ids.pop(), self)
+        self.schedule.add(newAgent)
+        newAgent.orientation = 'h'
+        x,y = pos
+        self.grid.place_agent(newAgent,(x,y))
 

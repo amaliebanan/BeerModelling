@@ -12,15 +12,38 @@ def wander(self):
         next_move = self.random.choice(possible_empty_steps)
         self.model.grid.move_agent(self, next_move)
 
+def buy_beer(self):
+    correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
+    correct_employee.dispatch_time = 1
+    self.employer = correct_employee
+    correct_employee.busy = 1
+
+    self.buying_beer_counter = 2
+
+
 class guest(Agent):
      def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
         self.model = model
+
+        self.employer = ()
         self.queuing = False
+        self.buying_beer_counter = 0
 
      def step(self):
          wander(self)
+
+         #If buying beer, stay at desk
+         if self.buying_beer_counter > 0:
+             self.buying_beer_counter = max(0,self.buying_beer_counter-1)
+             if self.buying_beer_counter == 0:
+                 self.employer.busy = 0
+
+             return
+         #If just arrived to desk, start process of buying the beer
+         elif self.pos in self.model.desk_pos:
+             buy_beer(self)
 
 
 class employee(Agent):
@@ -31,10 +54,28 @@ class employee(Agent):
 
         self.pouring = False
         self.pouring_time = 5
+
+        self.dispatch = False
+        self.dispatch_time = 5
+
+        self.busy = 0
         self.stall = ()
 
      def step(self):
-         print("hej")
+         #If there is less than 10 beers ready, pour beers, takes 2 minutes
+         if self.stall.beers_ready < 10:
+             self.pouring = True
+             self.busy = 1
+             self.pouring_time = 2
+
+         if self.pouring == True:
+            self.pouring_time = max(0,self.pouring_time-1)
+            self.stall.beers_ready = self.stall.beers_ready+5
+
+            #Agent is done pouring up beers
+            if self.pouring_time == 0:
+                self.busy = False
+                self.pouring = False
 
 class beerstall(Agent):
     def __init__(self, id, model):
@@ -42,8 +83,18 @@ class beerstall(Agent):
         self.id = id
         self.model = model
 
+        self.queue_starting_pos = []
+        self.beers_ready = 15
+
 class orangeScene(Agent):
      def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
         self.model = model
+
+class fence(Agent):
+     def __init__(self, id, model):
+        super().__init__(id, model)
+        self.id = id
+        self.model = model
+        self.orientation = ()

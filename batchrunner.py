@@ -8,7 +8,6 @@ iterationer = 10
 skridt = 720
 
 
-
 def plot_busy(fix_par, var_par, model, iter, steps):
     batch_run = BatchRunner(model,
     variable_parameters=var_par,

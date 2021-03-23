@@ -42,6 +42,12 @@ def draw(agent):
             portrayal["Color"] = "Black"
             portrayal["w"] = 1
             portrayal["h"] = 0.2
+    if isinstance(agent,ac.desk):
+        portrayal["Shape"] = "rect"
+        portrayal["Color"] = "pink"
+        portrayal["w"] = 0.75
+        portrayal["h"] = 0.75
+
 
     return portrayal
 

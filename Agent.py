@@ -96,3 +96,10 @@ class fence(Agent):
         self.id = id
         self.model = model
         self.orientation = ()
+
+class desk(Agent):
+      def __init__(self, id, model):
+        super().__init__(id, model)
+        self.id = id
+        self.model = model
+        self.orientation = ()

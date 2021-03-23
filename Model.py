@@ -60,6 +60,7 @@ class Model(Model):
                                                             "busy": lambda m: busy_employees(self)})
 
         #Initiate minute, hour and day
+        self.time_step = 1
         self.minute_count = 1
         self.hour_count = 1
         self.day_count = 1
@@ -85,7 +86,10 @@ class Model(Model):
 
         busy_employees_at_stalls(self)
         busy_employees_at_stalls(self)
-        self.minute_count += 1
+        self.time_step += 1
+
+        if self.time_step%6==0:
+            self.minute_count += 1
         if self.minute_count%60 == 0:
             self.hour_count += 1
 
@@ -115,9 +119,15 @@ def setUpStalls(self):
         self.schedule.add(newAgent)
         x,y = pos.pop()
         self.grid.place_agent(newAgent,(x,y))
-
+        desk_pos_ = [(x-1,y-2),(x-2,y-2),(x-2,y-1),(x+1,y-2),(x+2,y-2),(x+2,y-1),
+                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1)]
         desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
         self.desk_pos = self.desk_pos + desk_pos
+        for pos_ in desk_pos_:
+            newAgent = ac.desk(pos_, self)
+            self.schedule.add(newAgent)
+            self.grid.place_agent(newAgent,pos_)
+
 
 def setUpEmployees(self):
     employees = []
@@ -145,10 +155,10 @@ def setUpEmployees(self):
         counter += 5
 
 def setUpFence(self):
-    ids = [i for i in range (3000,3100)]
-    #Positions of horizontal fence
+    #Positions of horizontal and vertical fence
     pos_vertical_fence = [(2,i) for i in range(16,33)]
     pos_horizontal_fence = [(0,16),(1,16),(0,32),(1,32)]
+    ids = [i for i in range (3000,3000+len(pos_horizontal_fence)+len(pos_vertical_fence))]
 
     for pos in pos_vertical_fence:
         newAgent = ac.fence(ids.pop(), self)

@@ -33,6 +33,9 @@ class employee(Agent):
         self.pouring_time = 5
         self.stall = ()
 
+     def step(self):
+         print("hej")
+
 class beerstall(Agent):
     def __init__(self, id, model):
         super().__init__(id, model)

@@ -33,7 +33,6 @@ def busy_employees(self):
 
 def busy_employees_at_stalls(self):
     stalls = [s for s in self.schedule.agents if isinstance(s,ac.beerstall)]
-
     busy = []
     for stall in stalls:
         busy_employees = 0
@@ -42,6 +41,7 @@ def busy_employees_at_stalls(self):
                 busy_employees+=1
         busy.append((stall.id,busy_employees))
     return busy
+
 class Model(Model):
     def __init__(self, N, height, width):
         super().__init__()
@@ -83,7 +83,7 @@ class Model(Model):
         self.schedule.step()
         self.datacollector.collect(self)
 
-        print(busy_employees_at_stalls(self))
+        busy_employees_at_stalls(self)
         busy_employees_at_stalls(self)
         self.minute_count += 1
         if self.minute_count%60 == 0:

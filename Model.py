@@ -41,10 +41,27 @@ def busy_employees_at_stalls(self):
                 busy_employees+=1
         busy.append((stall.id,busy_employees))
     return busy
+
 def agents_go_to_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
-    percentages = (len(all_guests)/100)*90      #get 90% of the guests
+    percentages = int((len(all_guests)/100)*90)     #get 90% of the guests
 
+    counter = 0
+    while percentages>counter:
+        agent = self.random.choice(all_guests)
+        if agent.at_concert == True:
+            continue
+        else:
+            agent.at_concert = True
+            counter+=1
+
+
+
+def end_concert(self):
+    all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
+
+    for a in all_guests:
+        a.at_concert = False
 class Model(Model):
     def __init__(self, N, height, width):
         super().__init__()
@@ -73,9 +90,9 @@ class Model(Model):
 
         self.employees = []
         self.desk_pos = []
-
         self.busy = []
 
+        self.sceneCoords = [(0,i) for i in range(math.floor(height/2)-7,math.floor(height/2)+6)]
         setUpGuests(self,N)
         setUpScene(self)
         setUpStalls(self)
@@ -91,8 +108,24 @@ class Model(Model):
             self.hour_count += 1
 
         #Concert is starting
-        if self.minute_count == 15:
+        if self.time_step == 90:
             agents_go_to_concert(self)
+        #Concert is ending
+        elif self.time_step == 630:
+            end_concert(self)
+
+        #With poisson-distribution people leave and join the concert
+        if self.time_step in [i for i in range(91,630)]:
+            p_leave = np.random.poisson(1/100)
+            if p_leave == 1:
+                guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
+                agent = self.random.choice(guests_at_concert)
+                agent.at_concert = False
+            p_join = np.random.poisson(3/100)
+            if p_join == 1:
+                guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
+                agent = self.random.choice(guests_at_concert)
+                agent.at_concert = True
 
         self.busy.append(busy_employees(self))
         self.schedule.step()
@@ -112,13 +145,11 @@ def setUpGuests(self,N):
         self.grid.place_agent(newAgent,(x,y))
 
 def setUpScene(self):
-    w,h = self.width, self.height
-    y_coords = [i for i in range(math.floor(h/2)-7,math.floor(h/2)+6)]
-    for i in range(1000,1000+len(y_coords)):
+    coords = list.copy(self.sceneCoords)
+    for i in range(1000,1000+len(coords)):
         newAgent = ac.orangeScene(i, self)
         self.schedule.add(newAgent)
-        x = 0
-        y = y_coords.pop()
+        x,y = coords.pop()
         self.grid.place_agent(newAgent,(x,y))
 
 def setUpStalls(self):

@@ -80,6 +80,6 @@ busy_ = busy_employees()
 server = ModularServer(Model,
                        [grid,pt,pouring_chart],
                        "Roskilde Model",
-                       {"N":50, "width":width, "height":height})
+                       {"N":500, "width":width, "height":height})
 
 server.port = 8521 # The default

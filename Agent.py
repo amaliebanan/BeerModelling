@@ -13,13 +13,21 @@ def wander(self):
         self.model.grid.move_agent(self, next_move)
 
 def buy_beer(self):
-    print("TO BE IMPLEMENTED")
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
     correct_employee.dispatch_time = 1
     self.employer = correct_employee
     correct_employee.busy = True
 
     self.buying_beer_counter = 3
+
+def distance(pos1,pos2):
+    x1,y1 = pos1
+    x2,y2 = pos2
+
+    dx = abs(x1-x2)
+    dy = abs(y1-y2)
+
+    return math.sqrt(dx**2+dy**2)
 
 class guest(Agent):
      def __init__(self, id, model):
@@ -34,8 +42,30 @@ class guest(Agent):
         self.queuing = False
         self.buying_beer_counter = 0
 
+     def go_to_scene(self):
+         distances = []
+         scene_pos = (0,24)
+         possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
+         possible_empty_steps = []
+         for position in possible_steps:
+            if self.model.grid.is_cell_empty(position):
+                possible_empty_steps.append(position)
+
+         if possible_empty_steps == []:
+             return
+         for pos in possible_empty_steps:
+             distances.append((distance(scene_pos,pos),pos))
+         x_,y_ = min(distances,key=lambda x:x[0])[1]
+         self.model.grid.move_agent(self,(x_,y_))
+
+
+
      def step(self):
-         wander(self)
+         if self.queuing == False:
+             if self.at_concert == False:
+                wander(self)
+             else:
+                 self.go_to_scene()
 
          #If buying beer, stay at desk
          if self.buying_beer_counter > 0:

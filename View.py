@@ -19,12 +19,11 @@ def draw(agent):
     if isinstance(agent,ac.guest):
       portrayal["Color"] = "green"
       portrayal["scale"] = 0.9
-
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
       portrayal["scale"] = 0.9
     if isinstance(agent,ac.beerstall):
-      portrayal["Color"] = "yellow"
+      portrayal["Shape"] = "resources/beer.png"
       portrayal["scale"] = 0.9
 
     if isinstance(agent,ac.employee):

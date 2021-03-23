@@ -41,6 +41,9 @@ def busy_employees_at_stalls(self):
                 busy_employees+=1
         busy.append((stall.id,busy_employees))
     return busy
+def agents_go_to_concert(self):
+    all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
+    percentages = (len(all_guests)/100)*90      #get 90% of the guests
 
 class Model(Model):
     def __init__(self, N, height, width):
@@ -80,12 +83,6 @@ class Model(Model):
         setUpFence(self)
 
     def step(self):
-        self.busy.append(busy_employees(self))
-        self.schedule.step()
-        self.datacollector.collect(self)
-
-        busy_employees_at_stalls(self)
-        busy_employees_at_stalls(self)
         self.time_step += 1
 
         if self.time_step%6==0:
@@ -93,13 +90,25 @@ class Model(Model):
         if self.minute_count%60 == 0:
             self.hour_count += 1
 
+        #Concert is starting
+        if self.minute_count == 15:
+            agents_go_to_concert(self)
+
+        self.busy.append(busy_employees(self))
+        self.schedule.step()
+        self.datacollector.collect(self)
+
+        busy_employees_at_stalls(self)
+
+
         mean_busy = mean(self.busy)
 
 def setUpGuests(self,N):
     for i in range(0,N):
         newAgent = ac.guest(i, self)
         self.schedule.add(newAgent)
-        x,y = self.grid.find_empty()
+        x_,y = self.grid.find_empty()
+        x = max(3,x_)
         self.grid.place_agent(newAgent,(x,y))
 
 def setUpScene(self):
@@ -119,15 +128,19 @@ def setUpStalls(self):
         self.schedule.add(newAgent)
         x,y = pos.pop()
         self.grid.place_agent(newAgent,(x,y))
-        desk_pos_ = [(x-1,y-2),(x-2,y-2),(x-2,y-1),(x+1,y-2),(x+2,y-2),(x+2,y-1),
-                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1)]
+
+        #Here people order and pay for beer
         desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
         self.desk_pos = self.desk_pos + desk_pos
+
+        #People cannot get past the desk-line (the ones colored pink)
+        desk_pos_ = [(x-1,y-2),(x-2,y-2),(x-2,y-1),(x+1,y-2),(x+2,y-2),(x+2,y-1),
+                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1)]
+
         for pos_ in desk_pos_:
             newAgent = ac.desk(pos_, self)
             self.schedule.add(newAgent)
             self.grid.place_agent(newAgent,pos_)
-
 
 def setUpEmployees(self):
     employees = []

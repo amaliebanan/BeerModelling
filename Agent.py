@@ -13,6 +13,7 @@ def wander(self):
         self.model.grid.move_agent(self, next_move)
 
 def buy_beer(self):
+    print("TO BE IMPLEMENTED")
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
     correct_employee.dispatch_time = 1
     self.employer = correct_employee
@@ -26,7 +27,10 @@ class guest(Agent):
         self.id = id
         self.model = model
 
-        self.employer = ()
+        self.at_concert = False
+        self.looking_for_beer = False
+
+        self.employer = () #Hvem ekspederer agenten? Bliver opdateret så snart agenten bliver ekspederet (buy_beer-funktionen)
         self.queuing = False
         self.buying_beer_counter = 0
 

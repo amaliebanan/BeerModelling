@@ -1,7 +1,7 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule, TextElement
 from mesa.visualization.ModularVisualization import ModularServer
 from Model import Model, pouring_time,busy_employees
-import Model as m
+from Model import Model as m
 import Agent as ac
 
 width, height = 50,50
@@ -23,6 +23,12 @@ def draw(agent):
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
       portrayal["scale"] = 0.9
+      if agent.model.time_step in range(90,630):
+          if agent.model.time_step % 2 == 0:
+              portrayal["Color"] = "yellow"
+          else: portrayal["Color"] = "orange"
+
+
     if isinstance(agent,ac.beerstall):
       portrayal["Shape"] = "resources/beer.png"
       portrayal["scale"] = 0.9

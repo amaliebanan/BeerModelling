@@ -59,7 +59,6 @@ class guest(Agent):
          self.model.grid.move_agent(self,(x_,y_))
 
 
-
      def step(self):
          if self.queuing == False:
              if self.at_concert == False:

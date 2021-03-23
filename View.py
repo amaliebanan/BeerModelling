@@ -20,6 +20,10 @@ def draw(agent):
     if isinstance(agent,ac.guest):
       portrayal["Color"] = "green"
       portrayal["scale"] = 0.9
+      if agent.id>499:
+          portrayal["Color"] = "blue"
+#      if agent.at_concert == False:
+ #         portrayal["Color"] = "red"
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
       portrayal["scale"] = 0.9

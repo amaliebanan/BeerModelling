@@ -64,7 +64,7 @@ grid = CanvasGrid(draw, width, height, 1000,1000)
 pouring_chart = ChartModule([{"Label":"pouring_time","Color":"Black"}], data_collector_name="datacollector")
 #busy_employees_chart = ChartModule([{"Label":"busy","Color":"Black"}], data_collector_name="datacollector")
 pt = pouring_Time()
-#busy_ = busy_employees()
+busy_ = busy_employees()
 server = ModularServer(Model,
                        [grid,pt,pouring_chart],
                        "Covid Model",

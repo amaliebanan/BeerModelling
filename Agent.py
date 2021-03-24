@@ -20,7 +20,6 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
     return int(truncnorm((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
 
 def buy_beer(self):
-    print("TO BE IMPLEMENTED")
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
     #correct_employee.dispatch_time = 1 #hvad er dispatch_time?
     self.employer = correct_employee
@@ -34,6 +33,15 @@ def buy_beer(self):
 
     #if correct_employee.busy is True:
         #queue() - skriv funktion er sætter gæsten i kø.
+
+def distance(pos1,pos2):
+    x1,y1 = pos1
+    x2,y2 = pos2
+
+    dx = abs(x1-x2)
+    dy = abs(y1-y2)
+
+    return math.sqrt(dx**2+dy**2)
 
 class guest(Agent):
      def __init__(self, id, model):
@@ -49,8 +57,29 @@ class guest(Agent):
         self.buying_beer_counter = 0
         self.beers_bought = 0 #antall øl købt (skal denne tælles genem hele simulationen?)
 
+     def go_to_scene(self):
+         distances = []
+         scene_pos = (0,24)
+         possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
+         possible_empty_steps = []
+         for position in possible_steps:
+            if self.model.grid.is_cell_empty(position):
+                possible_empty_steps.append(position)
+
+         if possible_empty_steps == []:
+             return
+         for pos in possible_empty_steps:
+             distances.append((distance(scene_pos,pos),pos))
+         x_,y_ = min(distances,key=lambda x:x[0])[1]
+         self.model.grid.move_agent(self,(x_,y_))
+
+
      def step(self):
-         wander(self)
+         if self.queuing == False:
+             if self.at_concert == False:
+                wander(self)
+             else:
+                 self.go_to_scene()
 
          #If buying beer, stay at desk
          if self.buying_beer_counter > 0:

@@ -1,5 +1,7 @@
 from mesa import Agent, Model
 import math
+from scipy.stats import truncnorm
+import random
 
 def wander(self):
     possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
@@ -12,14 +14,26 @@ def wander(self):
         next_move = self.random.choice(possible_empty_steps)
         self.model.grid.move_agent(self, next_move)
 
+def dispatch_time():             # genererer random integer mellem 1 og 12 der følger normalfordeling med mean 4 std deviation 2.
+    lower, upper = 1, 12         #min 10 sek max 2 min
+    mu, sigma = 4, 2               #mean 4 std deviation 2
+    return int(truncnorm((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
+
 def buy_beer(self):
     print("TO BE IMPLEMENTED")
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    correct_employee.dispatch_time = 1
+    #correct_employee.dispatch_time = 1 #hvad er dispatch_time?
     self.employer = correct_employee
-    correct_employee.busy = True
 
-    self.buying_beer_counter = 3
+    if correct_employee.busy is False:
+        correct_employee.busy = True
+        correct_employee.dispatch_time = dispatch_time()
+        self.buying_beer_counter = correct_employee.dispatch_time
+        self.beers_bought = random.randint(1,8) #køber mellem 1 og 8 øl
+        self.stall.beers_ready = self.stall.beers_ready - self.number_beers_bought #trækker fra antall øl købt
+
+    #if correct_employee.busy is True:
+        #queue() - skriv funktion er sætter gæsten i kø.
 
 class guest(Agent):
      def __init__(self, id, model):
@@ -33,6 +47,7 @@ class guest(Agent):
         self.employer = () #Hvem ekspederer agenten? Bliver opdateret så snart agenten bliver ekspederet (buy_beer-funktionen)
         self.queuing = False
         self.buying_beer_counter = 0
+        self.beers_bought = 0 #antall øl købt (skal denne tælles genem hele simulationen?)
 
      def step(self):
          wander(self)

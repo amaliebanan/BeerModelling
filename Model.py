@@ -110,6 +110,7 @@ class Model(Model):
         self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
 
     def step(self):
+
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
 
 
@@ -157,6 +158,10 @@ class Model(Model):
         busy_employees_at_stalls(self)
 
         mean_busy = mean(self.busy)
+       # emp = [e for e in self.schedule.agents if isinstance(e,ac.employee)]
+        #for e in emp:
+         #   last_pos = e.queue_list[-1]
+          #  print(e.pos,last_pos,self.grid.is_cell_empty(last_pos))
 
 def setUpGuests(self,N):
     for i in range(0,N):
@@ -213,17 +218,18 @@ def setUpEmployees(self):
         temp = []
         for i in range(0,4):
             newAgent = ac.employee(stall.id+(i+1), self)
-            dirl = dir[i]
+            direction = dir[i]
             newAgent.stall = stall
             self.schedule.add(newAgent)
             x,y = t[i]
             self.grid.place_agent(newAgent,(x,y))
             self.employees.append(newAgent)
             temp.append(newAgent)
-            newAgent.queue_list = make_queue((x,y), dirl)
+            newAgent.queue_list = make_queue((x,y), direction)
         stall.employees = temp
         counter += 5
 
+#The queues' shape are pre-defined, make_queue functions creates a queue based on direction and position on grid
 def make_queue(pos, direction):
     x,y = pos
     queue_list = []

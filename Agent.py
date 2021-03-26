@@ -40,7 +40,6 @@ def buy_beer(self, employee):
     #employee.stall.beers_ready = employee.beers_ready - beers_ordered
 
 def go_to_queue(self,employee):
-    distances = []
     goal_pos = employee.queue_list[-1]
     possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
     possible_empty_steps = []
@@ -52,20 +51,23 @@ def go_to_queue(self,employee):
     if possible_empty_steps == []:
         return
 
-    for pos in possible_empty_steps:
-        distances.append((distance(goal_pos, pos), pos))
-
-        #Hvis køen er fyldt (virker ikke endnu)
-        if pos == goal_pos and self.model.grid.is_cell_empty(goal_pos) == False:
-            print(self.pos,employee.id)
+    if goal_pos in possible_empty_steps:
+        if self.model.grid.is_cell_empty(goal_pos) is True: #Cell is empty
+             self.model.grid.move_agent(self, goal_pos)
+             self.queuing = True
+        #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
+        # Dont get it..
+        elif self.model.grid.is_cell_empty(goal_pos) is False:
+            print("QUEUE IS FULL",self.pos,employee.pos)
             change_queue(self,employee)
-            print(self.pos,employee.id)
-    x_,y_ = min(distances,key=lambda x:x[0])[1]
+            print(self.pos,employee.pos)
+    else: #If goal_pos is not in possible steps, move to cell that is closest to goal_cell
+        distances = []
+        for pos in possible_empty_steps:
+            distances.append((distance(goal_pos, pos), pos))
+        x_,y_ = min(distances,key=lambda x:x[0])[1]
+        self.model.grid.move_agent(self, (x_,y_))
 
-    self.model.grid.move_agent(self, (x_,y_))
-
-    if self.pos == employee.queue_list[-1]:
-        self.queuing = True
 
 def change_queue(self,employee):
     the_three_other_employees = [e for e in self.model.schedule.agents if distance(e.pos,employee.pos)<2]
@@ -82,9 +84,8 @@ def queuing(self, employee):
             elif self.model.grid.is_cell_empty(employee.queue_list[i-1]): # hvis der er en ledig plass foran dig i køen, ryk fram
                 self.model.grid.move_agent(self, employee.queue_list[i-1])
             else:
+             # hvis der ikke er en ledig plass i køen foran deg, bliv stående.
                 return
-
-            # hvis der ikke er en ledig plass i køen foran deg, bliv stående.
 
 def distance(pos1,pos2):
     return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
@@ -163,11 +164,11 @@ class guest(Agent):
                  if self.going_to_queue == True:
                      go_to_queue(self,self.employer)
                  elif self.going_to_queue == False and self.drinking_beer == 0:
-                      #Før koncerten, tag de agenter, der er tæt på stall
+                      #Før og efter koncerten, tag de agenter, der er tæt på stall
                      if self.model.time_step < 91 or self.model.time_step>630:
                          self.go_to_closest_stall()
-                     else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og random
-                           #employee i den stall og gå hen mod den.
+                     else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
+                         # random employee i den stall og gå hen mod den
                          self.go_to_random_stall()
 
 

@@ -22,28 +22,13 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
 def buy_beer(self, employee):
     self.queuing = False
     self.going_to_queue = False
-<<<<<<< HEAD
     employee.dispatch_time = dispatch_time()
     self.buying_beer_counter = employee.dispatch_time
     beers_ordered = random.randint(1, 8)
     self.beers_bought = self.beers_bought + beers_ordered
     #employee.stall.beers_ready = employee.beers_ready - beers_ordered
-=======
-    correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    self.employer = correct_employee
 
-    number_beers_bought = 2
 
-    if correct_employee.busy is False:
-        correct_employee.busy = True
-        correct_employee.dispatch_time = dispatch_time()
-        self.buying_beer_counter = correct_employee.dispatch_time
-        self.beers_bought = random.randint(1,8) #køber mellem 1 og 8 øl
-        correct_employee.stall.beers_ready = correct_employee.stall.beers_ready - number_beers_bought #trækker fra antall øl købt
-
-    #if correct_employee.busy is True:
-        #queue() - skriv funktion er sætter gæsten i kø.
->>>>>>> dcf6726b33152d13472203d19b59a7217edb33dc
 
 def go_to_queue(self,employee):
     distances = []

@@ -19,22 +19,14 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
     mu, sigma = 4, 2               #mean 4 std deviation 2
     return math.floor(truncnorm.rvs((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
 
-def buy_beer(self):
+def buy_beer(self, employee):
     self.queuing = False
-    correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    self.employer = correct_employee
-
-    number_beers_bought = 2
-
-    if correct_employee.busy is False:
-        correct_employee.busy = True
-        correct_employee.dispatch_time = dispatch_time()
-        self.buying_beer_counter = correct_employee.dispatch_time
-        self.beers_bought = random.randint(1,8) #køber mellem 1 og 8 øl
-        correct_employee.stall.beers_ready = correct_employee.stall.beers_ready - number_beers_bought #trækker fra antall øl købt
-
-    #if correct_employee.busy is True:
-        #queue() - skriv funktion er sætter gæsten i kø.
+    self.going_to_queue = False
+    employee.dispatch_time = dispatch_time()
+    self.buying_beer_counter = employee.dispatch_time
+    beers_ordered = random.randint(1, 8)
+    self.beers_bought = self.beers_bought + beers_ordered
+    #employee.stall.beers_ready = employee.beers_ready - beers_ordered
 
 def go_to_queue(self,employee):
     distances = []
@@ -42,7 +34,7 @@ def go_to_queue(self,employee):
     possible_empty_steps = []
 
     for position in possible_steps:
-        if self.model.grid.is_cell_empty(position):
+        if self.model.grid.is_cell_empty(position) and position not in employee.queue_list[:-1]:
             possible_empty_steps.append(position)
 
     if possible_empty_steps == []:
@@ -52,7 +44,7 @@ def go_to_queue(self,employee):
     for pos in possible_empty_steps:
         distances.append((distance(employee.queue_list[-1], pos), pos))
    # print(self.pos,self.employer.id, self.employer.stall.id, employee.stall.id,employee.queue_list[-1])
-    x_, y_ = min(distances, key= lambda X:[0])[1]
+    x_, y_ = min(distances, key = lambda x:x[0])[1]
 
     self.model.grid.move_agent(self, (x_,y_))
 
@@ -64,8 +56,8 @@ def queuing(self, employee):
         if employee.queue_list[i] == self.pos:
             # hvis vi er foran i køen, køb øl
             if i == 0:
-                buy_beer(self)
-            if self.model.grid.is_cell_empty(employee.queue_list[i-1]): # hvis der er en ledig plass foran dig i køen, ryk fram
+                buy_beer(self,employee)
+            elif self.model.grid.is_cell_empty(employee.queue_list[i-1]): # hvis der er en ledig plass foran dig i køen, ryk fram
                 self.model.grid.move_agent(self, employee.queue_list[i-1])
             else:
                 return
@@ -80,16 +72,15 @@ class guest(Agent):
         super().__init__(id, model)
         self.id = id
         self.model = model
-
         self.at_concert = False
         self.looking_for_beer = False
-
         self.employer = () #Hvem ekspederer agenten? Bliver opdateret så snart agenten bliver ekspederet (buy_beer-funktionen)
         self.queuing = False
         self.going_to_queue = False
         self.buying_beer_counter = 0
         self.beers_bought = 0 #antall øl købt (skal denne tælles genem hele simulationen?)
         self.hey = False
+        self.drinking_beer = 0
 
      def go_to_scene(self):
          distances = []
@@ -109,11 +100,19 @@ class guest(Agent):
 
 
      def step(self):
-         if self.queuing == False:
+        self.drinking_beer = max(0, self.drinking_beer - 1)
+        if self.buying_beer_counter > 0:
+            self.buying_beer_counter -= self.buying_beer_counter
+            if self.buying_beer_counter == 0:
+                self.drinking_beer = 20
+                wander(self)
+            return
+
+        if self.queuing == False:
              if self.at_concert == False:
                  if self.going_to_queue == True:
                      go_to_queue(self,self.employer)
-                 elif self.going_to_queue == False:
+                 elif self.going_to_queue == False and self.drinking_beer == 0:
                      stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
         #             print(self.pos,stall)
                      if stall == []:
@@ -129,23 +128,11 @@ class guest(Agent):
                          print(self.pos,self.employer.queue_list)
                          self.going_to_queue = True
 
-
-
              else:
                  self.go_to_scene()
-         else:
+        else:
             queuing(self, self.employer)
 
-         #If buying beer, stay at desk
-         if self.buying_beer_counter > 0:
-             self.buying_beer_counter = max(0,self.buying_beer_counter-1)
-             if self.buying_beer_counter == 0:
-                 self.employer.busy = False
-
-             return
-         #If just arrived to desk, start process of buying the beer
-         elif self.pos in self.model.desk_pos:
-             buy_beer(self)
 
 class employee(Agent):
      def __init__(self, id, model):

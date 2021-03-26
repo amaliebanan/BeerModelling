@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import bernoulli
 import random
 import math
+from itertools import chain
 import sys
 from mesa.datacollection import DataCollector
 
@@ -105,8 +106,8 @@ class Model(Model):
         setUpEmployees(self)
         setUpFence(self)
 
-        self.stalls_ = [s.pos for s in self.schedule.agents if isinstance(s,ac.beerstall)]
-
+        #List of all the queues' position (2D array flattened using chain.from_iterable)
+        self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
 
     def step(self):
         self.time_step += 1
@@ -131,6 +132,7 @@ class Model(Model):
                 agent = self.random.choice(guests_at_concert)
                 agent.at_concert = False
 
+
             p_join = np.random.poisson(1/8)
             for i in range(0,p_join):
                 if bernoulli(1/10) == 1:
@@ -150,7 +152,6 @@ class Model(Model):
         self.datacollector.collect(self)
 
         busy_employees_at_stalls(self)
-
 
         mean_busy = mean(self.busy)
 

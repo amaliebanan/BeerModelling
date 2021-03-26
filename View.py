@@ -28,6 +28,9 @@ def draw(agent):
           portrayal["Color"] = "silver"
       if agent.queuing == True:
           portrayal["Color"] = "gold"
+      if agent.drinking_ == True:
+          portrayal["Shape"] = "resources/beer.png"
+
 
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"

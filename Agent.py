@@ -40,6 +40,7 @@ def go_to_queue(self,employee):
     distances = []
     possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
     possible_empty_steps = []
+
     for position in possible_steps:
         if self.model.grid.is_cell_empty(position):
             possible_empty_steps.append(position)
@@ -110,15 +111,23 @@ class guest(Agent):
      def step(self):
          if self.queuing == False:
              if self.at_concert == False:
-                 stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 8]
-                 if stall == []:
-                     wander(self)
-                 else:
-                     employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
-                     chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
-                     self.employer = chosen_employee
-                     go_to_queue(self,chosen_employee)
-                     self.going_to_queue = True
+                 if self.going_to_queue == True:
+                     go_to_queue(self,self.employer)
+                 elif self.going_to_queue == False:
+                     stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
+        #             print(self.pos,stall)
+                     if stall == []:
+                         wander(self)
+                     else:
+                         employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
+                         ids_ = [e.id for e in employees_closest]
+                         pos_ = [e.pos for e in employees_closest]
+
+                         chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
+                         self.employer = chosen_employee
+                         go_to_queue(self,chosen_employee)
+                         print(self.pos,self.employer.queue_list)
+                         self.going_to_queue = True
 
 
              else:

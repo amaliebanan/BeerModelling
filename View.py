@@ -24,8 +24,11 @@ def draw(agent):
           portrayal["Color"] = "blue"
       if agent.at_concert == False:
           portrayal["Color"] = "red"
+      if agent.going_to_queue == True:
+          portrayal["Color"] = "silver"
       if agent.queuing == True:
           portrayal["Color"] = "gold"
+
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
       portrayal["scale"] = 0.9

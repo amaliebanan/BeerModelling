@@ -127,6 +127,7 @@ class guest(Agent):
                          self.going_to_queue = True
 
 
+
              else:
                  self.go_to_scene()
          else:

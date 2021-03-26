@@ -5,12 +5,19 @@ import random
 
 def wander(self):
     possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
-    possible_empty_steps = []
+    possible_empty_steps,back_up_list = [],[]
     for position in possible_steps:
         if self.model.grid.is_cell_empty(position):
             possible_empty_steps.append(position)
 
-    if len(possible_empty_steps) != 0:
+    if possible_empty_steps == []:
+         all_neighbors = self.model.grid.get_neighbors(self.pos,moore=True,include_center=False)
+         for n in all_neighbors:
+             if isinstance(n,guest):
+                 back_up_list.append(n.pos)
+         pos = random.choice(back_up_list)
+         self.model.grid.move_agent(self,pos)
+    else:
         next_move = self.random.choice(possible_empty_steps)
         self.model.grid.move_agent(self, next_move)
 
@@ -98,6 +105,7 @@ class guest(Agent):
              distances.append((distance(scene_pos,pos),pos))
          x_,y_ = min(distances,key=lambda x:x[0])[1]
          self.model.grid.move_agent(self,(x_,y_))
+
 
 
      def step(self):

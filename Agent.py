@@ -11,6 +11,7 @@ def wander(self):
         if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
             possible_empty_steps.append(position)
 
+    #Hvis ingen af nabo-cellerne er tomme, må agenten gerne gå igennem andre guest-agenter (dog ikke igennem køen!)
     if possible_empty_steps == []:
          all_neighbors = self.model.grid.get_neighbors(self.pos,moore=True,include_center=False)
          for n in all_neighbors:
@@ -19,6 +20,7 @@ def wander(self):
                     back_up_list.append(n.pos)
          pos = random.choice(back_up_list)
          self.model.grid.move_agent(self,pos)
+    #Hvis køen ikke er tom, vælg random
     else:
         next_move = self.random.choice(possible_empty_steps)
         self.model.grid.move_agent(self, next_move)
@@ -52,12 +54,24 @@ def go_to_queue(self,employee):
 
     for pos in possible_empty_steps:
         distances.append((distance(goal_pos, pos), pos))
+
+        #Hvis køen er fyldt (virker ikke endnu)
+        if pos == goal_pos and self.model.grid.is_cell_empty(goal_pos) == False:
+            print(self.pos,employee.id)
+            change_queue(self,employee)
+            print(self.pos,employee.id)
     x_,y_ = min(distances,key=lambda x:x[0])[1]
 
     self.model.grid.move_agent(self, (x_,y_))
 
     if self.pos == employee.queue_list[-1]:
         self.queuing = True
+
+def change_queue(self,employee):
+    the_three_other_employees = [e for e in self.model.schedule.agents if distance(e.pos,employee.pos)<2]
+    new_employee = the_three_other_employees[random.randint(0,2)]
+    self.employer = new_employee
+    go_to_queue(self,new_employee)
 
 def queuing(self, employee):
     for i in range(0, len(employee.queue_list)):
@@ -107,6 +121,26 @@ class guest(Agent):
          x_,y_ = min(distances,key=lambda x:x[0])[1]
          self.model.grid.move_agent(self,(x_,y_))
 
+     def go_to_closest_stall(self):
+         stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
+         if stall == []:
+             wander(self)
+         else:
+             employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
+             get_distance_to_employees = [(distance(e.pos,self.pos),e) for e in employees_closest]
+             closest_employee = min(get_distance_to_employees,key=lambda x:x[0])[1]
+             self.employer = closest_employee
+             go_to_queue(self,self.employer)
+             self.going_to_queue = True
+
+     def go_to_random_stall(self):
+         random_stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall)][random.randint(0,3)]
+         employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == random_stall] #lager en liste av employees ved den nærmeste stall
+         chosen_employee = employees_closest[random.randint(0,3)]
+         self.employer = chosen_employee
+         go_to_queue(self,self.employer)
+         self.going_to_queue = True
+
      def step(self):
         self.drinking_beer = max(0, self.drinking_beer - 1)
         if self.drinking_beer == 0:
@@ -124,25 +158,23 @@ class guest(Agent):
         if self.drinking_beer>0:
               self.go_to_scene()
 
-
         if self.queuing == False:
              if self.at_concert == False:
                  if self.going_to_queue == True:
                      go_to_queue(self,self.employer)
                  elif self.going_to_queue == False and self.drinking_beer == 0:
-                     stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
-                     if stall == []:
-                         wander(self)
-                     else:
-                         employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
-                         chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
-                         self.employer = chosen_employee
-                         go_to_queue(self,chosen_employee)
-                         self.going_to_queue = True
+                      #Før koncerten, tag de agenter, der er tæt på stall
+                     if self.model.time_step < 91 or self.model.time_step>630:
+                         self.go_to_closest_stall()
+                     else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og random
+                           #employee i den stall og gå hen mod den.
+                         self.go_to_random_stall()
 
-             else:
+
+
+             else: #at_concert = True, gå til koncert
                  self.go_to_scene()
-        else:
+        else: #queuing = True, gå i køen
             queuing(self, self.employer)
 
 class employee(Agent):

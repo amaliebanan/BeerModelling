@@ -73,7 +73,6 @@ class Model(Model):
         self.N = N
         self.height = height
         self.width = width
-        self.south_queue = []
 
         #Multigrid (The visual grid)
         self.grid = MultiGrid(width, height, torus=False) #torus wraps edges
@@ -93,6 +92,7 @@ class Model(Model):
 
 
         #The location of the beer stalls
+        self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
 
 
         self.employees = []
@@ -110,6 +110,9 @@ class Model(Model):
         self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
 
     def step(self):
+        self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
+
+
         self.time_step += 1
 
         if self.time_step%6==0:
@@ -172,11 +175,11 @@ def setUpScene(self):
         self.grid.place_agent(newAgent,(x,y))
 
 def setUpStalls(self):
-    pos = [(15,44),(40,6),(15,6),(40,44)]
-    for i in range(2000,2000+len(pos)*5,5):
+    positions = list.copy(self.stall_positions)
+    for i in range(2000,2000+len(positions)*5,5):
         newAgent = ac.beerstall(i, self)
         self.schedule.add(newAgent)
-        x,y = pos.pop()
+        x,y = positions.pop()
         self.grid.place_agent(newAgent,(x,y))
 
         #Here people order and pay for beer
@@ -195,7 +198,7 @@ def setUpStalls(self):
 
 def setUpEmployees(self):
     teams = []
-    positions = [(40,44),(15,6),(40,6),(15,44)]
+    positions = reversed(self.stall_positions)
     for pos in positions:
         e1 = (pos[0],pos[1]-1)
         e2 = (pos[0]-1,pos[1])

@@ -18,12 +18,12 @@ def draw(agent):
         return
     portrayal = {"Shape": "circle", "r": 0.8, "Filled": "true", "Layer": 0}
     if isinstance(agent,ac.guest):
-      portrayal["Color"] = "green"
+      portrayal["Color"] = "91ffbd"
       portrayal["scale"] = 0.9
       if agent.id>499:
           portrayal["Color"] = "blue"
       if agent.at_concert == False:
-          portrayal["Color"] = "red"
+          portrayal["Color"] = "54a173"
       if agent.going_to_queue == True:
           portrayal["Color"] = "silver"
       if agent.queuing == True:

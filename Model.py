@@ -4,6 +4,7 @@ from mesa.time import SimultaneousActivation,RandomActivation
 import Agent as ac
 from statistics import mean
 import numpy as np
+from scipy.stats import bernoulli
 import random
 import math
 import sys
@@ -115,28 +116,25 @@ class Model(Model):
 
         #With poisson-distribution people leave and join the concert
         if self.time_step in [i for i in range(91,630)]:
-
-            p_leave = np.random.poisson(3/100)
-            if p_leave == 1:
+            p_leave = np.random.poisson(1/8)
+            for i in range(0,p_leave):
                 guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
                 agent = self.random.choice(guests_at_concert)
                 agent.at_concert = False
 
-            p_join = np.random.poisson(3/100)
-            if p_join == 1:
-                guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
-                agent = self.random.choice(guests_at_concert)
-                agent.at_concert = True
-
-        #Every 6th timestep (every minute) during the concert, one new guest joins
-        if self.time_step in [i for i in range(100,630,6)]:
-            max_id = max([a.id for a in self.schedule.agents if isinstance(a,ac.guest)])
-            newAgent = ac.guest(max_id+1, self)
-            self.schedule.add(newAgent)
-            x_,y_ = self.random.choice([(25,0),(25,49),(40,0),(40,49),(49,10),(49,39)])
-            newAgent.at_concert = True
-            self.grid.place_agent(newAgent,(x_,y_))
-
+            p_join = np.random.poisson(1/8)
+            for i in range(0,p_join):
+                if bernoulli(1/10) == 1:
+                    guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
+                    agent = self.random.choice(guests_at_concert)
+                    agent.at_concert = True
+                else:
+                    max_id = max([a.id for a in self.schedule.agents if isinstance(a,ac.guest)])
+                    newAgent = ac.guest(max_id+1, self)
+                    self.schedule.add(newAgent)
+                    x_,y_ = self.random.choice([(25,0),(25,49),(40,0),(40,49),(49,10),(49,39)])
+                    newAgent.at_concert = True
+                    self.grid.place_agent(newAgent,(x_,y_))
 
         self.busy.append(busy_employees(self))
         self.schedule.step()

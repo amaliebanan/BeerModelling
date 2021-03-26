@@ -76,7 +76,7 @@ class guest(Agent):
                  distance_to_stalls = [distance(s.pos,self.pos) for s in stalls]
                  for d in distance_to_stalls:
                      if d<10:
-                         print("TO BE IMPLEMENTED")
+                        '''To do'''
                  else:
                      wander(self)
              else:
@@ -111,7 +111,7 @@ class employee(Agent):
      def step(self):
          #If there is less than 10 beers ready, pour beers, takes 2 minutes
          if self.stall.beers_ready < 10:
-            print("TO BE IMPLEMENTED")
+                '''To do'''
 
          if self.pouring == True:
             self.pouring_time = max(0,self.pouring_time-1)
@@ -119,7 +119,7 @@ class employee(Agent):
 
             #Agent is done pouring up beers
             if self.pouring_time == 0:
-                print("TO BE IMPLEMENTED")
+                '''To do'''
                 self.busy = False
                 self.pouring = False
 

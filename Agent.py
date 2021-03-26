@@ -20,14 +20,9 @@ def buy_beer(self):
 
     self.buying_beer_counter = 3
 
+
 def distance(pos1,pos2):
-    x1,y1 = pos1
-    x2,y2 = pos2
-
-    dx = abs(x1-x2)
-    dy = abs(y1-y2)
-
-    return math.sqrt(dx**2+dy**2)
+    return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
 
 class guest(Agent):
      def __init__(self, id, model):

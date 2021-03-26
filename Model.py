@@ -55,13 +55,12 @@ def agents_go_to_concert(self):
             agent.at_concert = True
             counter+=1
 
-
-
 def end_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
 
     for a in all_guests:
         a.at_concert = False
+
 class Model(Model):
     def __init__(self, N, height, width):
         super().__init__()
@@ -117,7 +116,7 @@ class Model(Model):
         #With poisson-distribution people leave and join the concert
         if self.time_step in [i for i in range(91,630)]:
 
-            p_leave = np.random.poisson(1/100)
+            p_leave = np.random.poisson(3/100)
             if p_leave == 1:
                 guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
                 agent = self.random.choice(guests_at_concert)

@@ -106,6 +106,9 @@ class Model(Model):
         setUpFence(self)
 
     def step(self):
+        emp = [e for e in self.schedule.agents if isinstance(e,ac.employee)]
+      #  for e in emp:
+       #     print(e.pos,e.stall.pos,e.id)
         self.time_step += 1
 
         if self.time_step%6==0:

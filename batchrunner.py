@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 fixed_params = {"width":50, "height": 50}
 variable_params = {"N": range(40,41)}
-iterationer = 10
+iterationer = 1
 skridt = 720
 
 

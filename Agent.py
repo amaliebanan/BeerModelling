@@ -17,33 +17,29 @@ def wander(self):
 def dispatch_time():             # genererer random integer mellem 1 og 12 der følger normalfordeling med mean 4 std deviation 2.
     lower, upper = 1, 12         #min 10 sek max 2 min
     mu, sigma = 4, 2               #mean 4 std deviation 2
-    return math.floor(truncnorm((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
+    return math.floor(truncnorm.rvs((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
 
 def buy_beer(self):
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    #correct_employee.dispatch_time = 1
     self.employer = correct_employee
+
+    number_beers_bought = 2
 
     if correct_employee.busy is False:
         correct_employee.busy = True
         correct_employee.dispatch_time = dispatch_time()
         self.buying_beer_counter = correct_employee.dispatch_time
         self.beers_bought = random.randint(1,8) #køber mellem 1 og 8 øl
-        self.stall.beers_ready = self.stall.beers_ready - self.number_beers_bought #trækker fra antall øl købt
+        correct_employee.stall.beers_ready = correct_employee.stall.beers_ready - number_beers_bought #trækker fra antall øl købt
 
     #if correct_employee.busy is True:
         #queue() - skriv funktion er sætter gæsten i kø.
 
 def queue(self):
+    return
 
 def distance(pos1,pos2):
-    x1,y1 = pos1
-    x2,y2 = pos2
-
-    dx = abs(x1-x2)
-    dy = abs(y1-y2)
-
-    return math.sqrt(dx**2+dy**2)
+    return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
 
 class guest(Agent):
      def __init__(self, id, model):
@@ -79,7 +75,13 @@ class guest(Agent):
      def step(self):
          if self.queuing == False:
              if self.at_concert == False:
-                wander(self)
+                 stalls = [s for s in self.model.schedule.agents if isinstance(s,beerstall)]
+                 distance_to_stalls = [distance(s.pos,self.pos) for s in stalls]
+                 for d in distance_to_stalls:
+                     if d<10:
+                         print("TO BE IMPLEMENTED")
+                 else:
+                     wander(self)
              else:
                  self.go_to_scene()
 
@@ -107,7 +109,7 @@ class employee(Agent):
         self.dispatch_time = 5
 
         self.busy = False
-        self.stall = (
+        self.stall = ()
 
         self.queue_list = []
 

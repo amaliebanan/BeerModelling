@@ -17,11 +17,11 @@ def wander(self):
 def dispatch_time():             # genererer random integer mellem 1 og 12 der følger normalfordeling med mean 4 std deviation 2.
     lower, upper = 1, 12         #min 10 sek max 2 min
     mu, sigma = 4, 2               #mean 4 std deviation 2
-    return int(truncnorm((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
+    return math.floor(truncnorm((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
 
 def buy_beer(self):
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    #correct_employee.dispatch_time = 1 #hvad er dispatch_time?
+    #correct_employee.dispatch_time = 1
     self.employer = correct_employee
 
     if correct_employee.busy is False:
@@ -33,6 +33,8 @@ def buy_beer(self):
 
     #if correct_employee.busy is True:
         #queue() - skriv funktion er sætter gæsten i kø.
+
+def queue(self):
 
 def distance(pos1,pos2):
     x1,y1 = pos1
@@ -105,7 +107,9 @@ class employee(Agent):
         self.dispatch_time = 5
 
         self.busy = False
-        self.stall = ()
+        self.stall = (
+
+        self.queue_list = []
 
      def step(self):
          #If there is less than 10 beers ready, pour beers, takes 2 minutes

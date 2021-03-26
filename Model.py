@@ -105,10 +105,10 @@ class Model(Model):
         setUpEmployees(self)
         setUpFence(self)
 
+        self.stalls_ = [s.pos for s in self.schedule.agents if isinstance(s,ac.beerstall)]
+
+
     def step(self):
-        emp = [e for e in self.schedule.agents if isinstance(e,ac.employee)]
-      #  for e in emp:
-       #     print(e.pos,e.stall.pos,e.id)
         self.time_step += 1
 
         if self.time_step%6==0:
@@ -184,7 +184,8 @@ def setUpStalls(self):
 
         #People cannot get past the desk-line (the ones colored pink)
         desk_pos_ = [(x-1,y-2),(x-2,y-2),(x-2,y-1),(x+1,y-2),(x+2,y-2),(x+2,y-1),
-                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1)]
+                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1),
+                     (x-1,y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1)]
 
         for pos_ in desk_pos_:
             newAgent = ac.desk(pos_, self)

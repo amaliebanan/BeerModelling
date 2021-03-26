@@ -22,14 +22,32 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
 def buy_beer(self, employee):
     self.queuing = False
     self.going_to_queue = False
+<<<<<<< HEAD
     employee.dispatch_time = dispatch_time()
     self.buying_beer_counter = employee.dispatch_time
     beers_ordered = random.randint(1, 8)
     self.beers_bought = self.beers_bought + beers_ordered
     #employee.stall.beers_ready = employee.beers_ready - beers_ordered
+=======
+    correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
+    self.employer = correct_employee
+
+    number_beers_bought = 2
+
+    if correct_employee.busy is False:
+        correct_employee.busy = True
+        correct_employee.dispatch_time = dispatch_time()
+        self.buying_beer_counter = correct_employee.dispatch_time
+        self.beers_bought = random.randint(1,8) #køber mellem 1 og 8 øl
+        correct_employee.stall.beers_ready = correct_employee.stall.beers_ready - number_beers_bought #trækker fra antall øl købt
+
+    #if correct_employee.busy is True:
+        #queue() - skriv funktion er sætter gæsten i kø.
+>>>>>>> dcf6726b33152d13472203d19b59a7217edb33dc
 
 def go_to_queue(self,employee):
     distances = []
+    goal_pos = employee.queue_list[-1]
     possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
     possible_empty_steps = []
 
@@ -38,13 +56,11 @@ def go_to_queue(self,employee):
             possible_empty_steps.append(position)
 
     if possible_empty_steps == []:
-       # print("NO STEPS TO GO",self.id,self.pos,employee.id)
         return
 
     for pos in possible_empty_steps:
-        distances.append((distance(employee.queue_list[-1], pos), pos))
-   # print(self.pos,self.employer.id, self.employer.stall.id, employee.stall.id,employee.queue_list[-1])
-    x_, y_ = min(distances, key = lambda x:x[0])[1]
+        distances.append((distance(goal_pos, pos), pos))
+    x_,y_ = min(distances,key=lambda x:x[0])[1]
 
     self.model.grid.move_agent(self, (x_,y_))
 
@@ -114,18 +130,15 @@ class guest(Agent):
                      go_to_queue(self,self.employer)
                  elif self.going_to_queue == False and self.drinking_beer == 0:
                      stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
-        #             print(self.pos,stall)
                      if stall == []:
                          wander(self)
                      else:
                          employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
-                         ids_ = [e.id for e in employees_closest]
-                         pos_ = [e.pos for e in employees_closest]
 
                          chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
                          self.employer = chosen_employee
                          go_to_queue(self,chosen_employee)
-                         print(self.pos,self.employer.queue_list)
+                      #   print(self.pos,self.employer.queue_list)
                          self.going_to_queue = True
 
              else:

@@ -19,6 +19,8 @@ our logical algorithm (e.g. should the agents move randomly or simultaneously?)
 
 '''
 
+
+
 def pouring_time(self):
     sump = 0
     for a in self.employees:
@@ -31,6 +33,8 @@ def busy_employees(self):
         if a.busy == True:
             busy+=1
     return busy
+
+
 
 def busy_employees_at_stalls(self):
     stalls = [s for s in self.schedule.agents if isinstance(s,ac.beerstall)]
@@ -68,6 +72,7 @@ class Model(Model):
         self.N = N
         self.height = height
         self.width = width
+        self.south_queue = []
 
         #Multigrid (The visual grid)
         self.grid = MultiGrid(width, height, torus=False) #torus wraps edges
@@ -85,8 +90,9 @@ class Model(Model):
         self.hour_count = 1
         self.day_count = 1
 
+
         #The location of the beer stalls
-        self.stall_positions = [(15,6),(40,6),(15,44),(40,44)]
+
 
         self.employees = []
         self.desk_pos = []
@@ -162,7 +168,7 @@ def setUpScene(self):
         self.grid.place_agent(newAgent,(x,y))
 
 def setUpStalls(self):
-    pos = list.copy(self.stall_positions)
+    pos = [(15,44),(40,6),(15,6),(40,44)]
     for i in range(2000,2000+len(pos)*5,5):
         newAgent = ac.beerstall(i, self)
         self.schedule.add(newAgent)
@@ -183,29 +189,45 @@ def setUpStalls(self):
             self.grid.place_agent(newAgent,pos_)
 
 def setUpEmployees(self):
-    employees = []
-    for pos in self.stall_positions:
+    teams = []
+    positions = [(40,44),(15,6),(40,6),(15,44)]
+    for pos in positions:
         e1 = (pos[0],pos[1]-1)
         e2 = (pos[0]-1,pos[1])
         e3 = (pos[0]+1,pos[1])
         e4 = (pos[0],pos[1]+1)
-        stall = (pos,e1,e2,e3,e4)
-        employees.append(stall)
-
+        team = (e1,e2,e3,e4)
+        teams.append(team)
+    dir = ("s","w","e","n")
     counter = 0
-    for stalls in employees:
+    for t in teams:
         stall = [stall for stall in self.schedule.agents if stall.id == 2000+counter][0]
         temp = []
-        for e in range(1,5):
-            newAgent = ac.employee(stall.id+e, self)
+        for i in range(0,4):
+            newAgent = ac.employee(stall.id+(i+1), self)
+            dirl = dir[i]
             newAgent.stall = stall
             self.schedule.add(newAgent)
-            x,y = stalls[e]
+            x,y = t[i]
             self.grid.place_agent(newAgent,(x,y))
             self.employees.append(newAgent)
             temp.append(newAgent)
+            newAgent.queue_list = make_queue((x,y), dirl)
         stall.employees = temp
         counter += 5
+
+def make_queue(pos, direction):
+    x,y = pos
+    queue_list = []
+    if direction == 'n':
+        queue_list = [(x,y+1), (x,y+2), (x+1,y+2), (x+2, y+2), (x+3, y+2), (x+3, y+3), (x+4, y+3), (x+5, y+3)]
+    if direction == 's':
+        queue_list = [(x,y-1), (x, y-2), (x+1, y-2), (x+1, y-3), (x+1, y-4), (x, y-4), (x, y-5), (x-1, y-5)]
+    if direction == "e":
+        queue_list = [(x+1, y), (x+2, y), (x+2, y+1), (x+3, y+1), (x+4, y+1), (x+4, y), (x+5, y), (x+6, y)]
+    if direction == "w":
+        queue_list = [(x-1, y), (x-2, y), (x-2, y+1), (x-3, y+1), (x-4, y+1), (x-4, y), (x-5, y), (x-6, y)]
+    return queue_list
 
 def setUpFence(self):
     #Positions of horizontal and vertical fence

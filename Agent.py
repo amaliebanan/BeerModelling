@@ -117,7 +117,7 @@ class guest(Agent):
                      employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
                      chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
                      self.employer = chosen_employee
-                     go_to_queue(self,chosen_employee)
+                     go_to_queue(self,self.employer)
                      self.going_to_queue = True
 
 

@@ -35,8 +35,39 @@ def buy_beer(self):
     #if correct_employee.busy is True:
         #queue() - skriv funktion er sætter gæsten i kø.
 
-def queue(self):
-    return
+def go_to_queue(self,employee):
+    distances = []
+    possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+    possible_empty_steps = []
+    for position in possible_steps:
+        if self.model.grid.is_cell_empty(position):
+            possible_empty_steps.append(position)
+
+    if possible_empty_steps == []:
+        return
+
+    for pos in possible_empty_steps:
+        distances.append((distance(employee.queue_list[-1], pos), pos))
+    x_, y_ = min(distances, key= lambda X:[0])[1]
+    print(employee.pos,self.pos,x_,y_)
+    self.model.grid.move_agent(self, (x_,y_))
+
+    if self.pos == employee.queue_list[-1]:
+        self.queuing = True
+
+def queuing(self, employee):
+    for i in range(0, len(employee.queue_list)):
+        if employee.queue_list[i] == self.pos:
+            # hvis vi er foran i køen, køb øl
+            if i == 0:
+                #buy beer
+                print("Først")
+            if self.model.grid.is_cell_empty(employee.queue_list[i-1]): # hvis der er en ledig plass foran dig i køen, ryk fram
+                self.model.grid.move_agent(self, employee.queue_list[i-1])
+            else:
+                return
+
+            # hvis der ikke er en ledig plass i køen foran deg, bliv stående.
 
 def distance(pos1,pos2):
     return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
@@ -52,8 +83,10 @@ class guest(Agent):
 
         self.employer = () #Hvem ekspederer agenten? Bliver opdateret så snart agenten bliver ekspederet (buy_beer-funktionen)
         self.queuing = False
+        self.going_to_queue = False
         self.buying_beer_counter = 0
         self.beers_bought = 0 #antall øl købt (skal denne tælles genem hele simulationen?)
+        self.hey = False
 
      def go_to_scene(self):
          distances = []
@@ -75,15 +108,22 @@ class guest(Agent):
      def step(self):
          if self.queuing == False:
              if self.at_concert == False:
-                 stalls = [s for s in self.model.schedule.agents if isinstance(s,beerstall)]
-                 distance_to_stalls = [distance(s.pos,self.pos) for s in stalls]
-                 for d in distance_to_stalls:
-                     if d<10:
-                         print("TO BE IMPLEMENTED")
-                 else:
+                 stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 8]
+                 if stall == []:
                      wander(self)
+                 else:
+                     employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == stall[0]] #lager en liste av employees ved den nærmeste stall
+                     chosen_employee = employees_closest[random.randint(0,3)] #vælger en tilfældig employee i listen
+                     self.employer = chosen_employee
+                     go_to_queue(self,chosen_employee)
+                     self.going_to_queue = True
+                     self.hey = True
+
+
              else:
                  self.go_to_scene()
+         else:
+            queuing(self, self.employer)
 
          #If buying beer, stay at desk
          if self.buying_beer_counter > 0:
@@ -116,7 +156,7 @@ class employee(Agent):
      def step(self):
          #If there is less than 10 beers ready, pour beers, takes 2 minutes
          if self.stall.beers_ready < 10:
-            print("TO BE IMPLEMENTED")
+            '''tbi'''
 
          if self.pouring == True:
             self.pouring_time = max(0,self.pouring_time-1)
@@ -124,7 +164,7 @@ class employee(Agent):
 
             #Agent is done pouring up beers
             if self.pouring_time == 0:
-                print("TO BE IMPLEMENTED")
+                '''tbi'''
                 self.busy = False
                 self.pouring = False
 

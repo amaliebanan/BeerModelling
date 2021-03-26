@@ -21,7 +21,6 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
 
 def buy_beer(self):
     correct_employee = [a for a in self.model.grid.get_neighbors(self.pos,moore=True,include_center=False,radius=1) if isinstance(a,employee)][0]
-    #correct_employee.dispatch_time = 1 #hvad er dispatch_time?
     self.employer = correct_employee
 
     number_beers_bought = 2
@@ -73,7 +72,13 @@ class guest(Agent):
      def step(self):
          if self.queuing == False:
              if self.at_concert == False:
-                wander(self)
+                 stalls = [s for s in self.model.schedule.agents if isinstance(s,beerstall)]
+                 distance_to_stalls = [distance(s.pos,self.pos) for s in stalls]
+                 for d in distance_to_stalls:
+                     if d<10:
+                         print("TO BE IMPLEMENTED")
+                 else:
+                     wander(self)
              else:
                  self.go_to_scene()
 

@@ -85,7 +85,7 @@ class Model(Model):
         self.day_count = 1
 
         #The location of the beer stalls
-        self.stall_positions = [(10,6),(40,6),(15,44),(40,44)]
+        self.stall_positions = [(15,6),(40,6),(15,44),(40,44)]
 
         self.employees = []
         self.desk_pos = []

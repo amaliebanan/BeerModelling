@@ -27,7 +27,7 @@ def draw(agent):
       if agent.queuing == True:
           portrayal["Color"] = "gold"
       if agent.drinking_ == True:
-          portrayal["Shape"] = "resources/beer.png"
+          portrayal["Color"] = "blue"
       if agent.buying == True:
             portrayal["Color"] = "eff54c"
 

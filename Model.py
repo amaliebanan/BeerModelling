@@ -11,7 +11,7 @@ from itertools import chain
 import sys
 from mesa.datacollection import DataCollector
 
-
+percentages_go_to_concert = 90
 '''
 The Model-object is responsible for the logical structure of our ABM. 
 
@@ -29,13 +29,12 @@ def pouring_time(self):
     return sump
 
 def busy_employees(self):
-    busy = 0
-    for a in self.employees:
-        if a.busy == True:
-            busy+=1
-    return busy
+    employees_busy = [a for a in self.schedule.agents if isinstance(a,ac.employee) and a.busy == True]
+    return len(employees_busy)
 
-
+def queuing(self):
+    agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
+    return len(agents_queuing)
 
 def busy_employees_at_stalls(self):
     stalls = [s for s in self.schedule.agents if isinstance(s,ac.beerstall)]
@@ -50,7 +49,7 @@ def busy_employees_at_stalls(self):
 
 def agents_go_to_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
-    percentages = int((len(all_guests)/100)*90)     #get 90% of the guests
+    percentages = int((len(all_guests)/100)*percentages_go_to_concert)     #get 90% of the guests
 
     counter = 0
     while percentages>counter:
@@ -82,7 +81,8 @@ class Model(Model):
 
         #Datacollector to collect our data (pouring time, dispatch time, etc)
         self.datacollector = DataCollector(model_reporters={"pouring_time": lambda m: pouring_time(self),
-                                                            "busy": lambda m: busy_employees(self)})
+                                                            "busy": lambda m: busy_employees(self),
+                                                            "queuing": lambda m: queuing(self)})
 
         #Initiate minute, hour and day
         self.time_step = 1
@@ -110,7 +110,6 @@ class Model(Model):
         self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
 
     def step(self):
-
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
 
 
@@ -158,10 +157,6 @@ class Model(Model):
         busy_employees_at_stalls(self)
 
         mean_busy = mean(self.busy)
-       # emp = [e for e in self.schedule.agents if isinstance(e,ac.employee)]
-        #for e in emp:
-         #   last_pos = e.queue_list[-1]
-          #  print(e.pos,last_pos,self.grid.is_cell_empty(last_pos))
 
 def setUpGuests(self,N):
     for i in range(0,N):

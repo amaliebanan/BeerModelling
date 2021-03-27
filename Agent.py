@@ -31,10 +31,13 @@ def dispatch_time():             # genererer random integer mellem 1 og 12 der f
     return math.floor(truncnorm.rvs((lower - mu) /sigma, (upper - mu) /sigma, loc = mu, scale=sigma)) #returnerer trunctuated normal distribution random variabel as int
 
 def buy_beer(self, employee):
-    self.queuing = False
-    self.going_to_queue = False
-    employee.dispatch_time = 2
-    self.buying_beer_counter = employee.dispatch_time
+    self.model.grid.is_cell_empty(employee.queue_list[-1])
+    time_at_counter = dispatch_time()
+
+    employee.dispatch_time = time_at_counter
+    employee.busy = True
+
+    self.buying_beer_counter = time_at_counter
     beers_ordered = random.randint(1, 8)
     self.beers_bought = self.beers_bought + beers_ordered
     #employee.stall.beers_ready = employee.beers_ready - beers_ordered
@@ -55,6 +58,7 @@ def go_to_queue(self,employee):
         if self.model.grid.is_cell_empty(goal_pos) is True: #Cell is empty
              self.model.grid.move_agent(self, goal_pos)
              self.queuing = True
+             self.going_to_queue = False
         #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
         # Dont get it..
         elif self.model.grid.is_cell_empty(goal_pos) is False:
@@ -68,7 +72,6 @@ def go_to_queue(self,employee):
         x_,y_ = min(distances,key=lambda x:x[0])[1]
         self.model.grid.move_agent(self, (x_,y_))
 
-
 def change_queue(self,employee):
     the_three_other_employees = [e for e in self.model.schedule.agents if distance(e.pos,employee.pos)<2]
     new_employee = the_three_other_employees[random.randint(0,2)]
@@ -81,7 +84,8 @@ def queuing(self, employee):
             # hvis vi er foran i køen, køb øl
             if i == 0:
                 buy_beer(self,employee)
-            elif self.model.grid.is_cell_empty(employee.queue_list[i-1]): # hvis der er en ledig plass foran dig i køen, ryk fram
+                self.buying = True
+            elif self.model.grid.is_cell_empty(employee.queue_list[i-1]):# hvis der er en ledig plass foran dig i køen, ryk fram
                 self.model.grid.move_agent(self, employee.queue_list[i-1])
             else:
              # hvis der ikke er en ledig plass i køen foran deg, bliv stående.
@@ -105,6 +109,7 @@ class guest(Agent):
         self.beers_bought = 0 #antall øl købt (skal denne tælles genem hele simulationen?)
         self.hey = False
         self.drinking_beer = 0
+        self.buying = False
 
      def go_to_scene(self):
          distances = []
@@ -148,14 +153,17 @@ class guest(Agent):
             self.drinking_ = False
 
         if self.buying_beer_counter > 0:
-            self.buying_beer_counter -= self.buying_beer_counter
+            self.buying_beer_counter = self.buying_beer_counter-1
             if self.buying_beer_counter == 0:
+                self.buying = False
+                self.queuing = False
                 self.drinking_beer = 20
                 self.drinking_ = True
                 self.go_to_scene()
                 wander(self)
+            else:
+                return
 
-            return
         if self.drinking_beer>0:
               self.go_to_scene()
 
@@ -165,7 +173,7 @@ class guest(Agent):
                      go_to_queue(self,self.employer)
                  elif self.going_to_queue == False and self.drinking_beer == 0:
                       #Før og efter koncerten, tag de agenter, der er tæt på stall
-                     if self.model.time_step < 91 or self.model.time_step>630:
+                     if self.model.time_step < 630:
                          self.go_to_closest_stall()
                      else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
                          # random employee i den stall og gå hen mod den
@@ -196,6 +204,10 @@ class employee(Agent):
         self.queue_list = []
 
      def step(self):
+         self.dispatch_time = max(0,self.dispatch_time-1)
+         if self.dispatch_time==0:
+             self.busy = False
+
          #If there is less than 10 beers ready, pour beers, takes 2 minutes
          if self.stall.beers_ready < 10:
             '''tbi'''

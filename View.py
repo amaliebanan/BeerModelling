@@ -30,7 +30,8 @@ def draw(agent):
           portrayal["Color"] = "gold"
       if agent.drinking_ == True:
           portrayal["Shape"] = "resources/beer.png"
-
+      if agent.buying == True:
+            portrayal["Color"] = "eff54c"
 
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
@@ -48,6 +49,8 @@ def draw(agent):
     if isinstance(agent,ac.employee):
       portrayal["Color"] = "black"
       portrayal["scale"] = 0.9
+      if agent.busy == True:
+         portrayal["Color"] = "red"
 
     if isinstance(agent,ac.fence):
         if agent.orientation == 'v':

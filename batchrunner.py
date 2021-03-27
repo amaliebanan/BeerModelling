@@ -1,10 +1,10 @@
 from mesa.batchrunner import BatchRunner
-from Model import Model, busy_employees
+from Model import Model, busy_employees,queuing
 import matplotlib.pyplot as plt
 
 fixed_params = {"width":50, "height": 50}
 variable_params = {"N": range(40,41)}
-iterationer = 1
+iterationer = 3
 skridt = 720
 
 
@@ -24,9 +24,9 @@ def plot_busy(fix_par, var_par, model, iter, steps):
         for j in range(len(data_list[i]["busy"])):
             sum_of_busy[j]+=data_list[i]["busy"][j] #at the right index add number of infected
 
-    sum_of_infected =[number / iter for number in sum_of_busy] #divide list with number of iterations to get avg
+    sum_of_b =[number / iter for number in sum_of_busy] #divide list with number of iterations to get avg
     time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
-    plt.plot(time, sum_of_busy, label= '# busy employees', color = 'Green')
+    plt.plot(time, sum_of_b, label= '# busy employees', color = 'Green')
   #  plt.plot(time, num_of_susceptible, label= 'Number of Susceptible', color = 'Green', linestyle='dashed')
     plt.xlabel('Tidsskridt')
     plt.ylabel('Mean busy employees')

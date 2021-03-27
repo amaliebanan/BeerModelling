@@ -20,14 +20,6 @@ our logical algorithm (e.g. should the agents move randomly or simultaneously?)
 
 '''
 
-
-
-def pouring_time(self):
-    sump = 0
-    for a in self.employees:
-        sump += a.pouring_time
-    return sump
-
 def busy_employees(self):
     employees_busy = [a for a in self.schedule.agents if isinstance(a,ac.employee) and a.busy == True]
     return len(employees_busy)

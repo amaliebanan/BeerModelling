@@ -1,6 +1,6 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule, TextElement
 from mesa.visualization.ModularVisualization import ModularServer
-from Model import Model, pouring_time,busy_employees
+from Model import Model,busy_employees
 from Model import Model as m
 import Agent as ac
 
@@ -75,7 +75,7 @@ class pouring_Time(TextElement):
         pass
 
     def render(self, model):
-        return "Pouring time: " + str(pouring_time(model))
+        return "Pouring time: " + str(busy_employees())
 
 class busy_employees(TextElement):
     def __init__(self):

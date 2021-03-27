@@ -78,6 +78,9 @@ def change_queue(self,employee):
     self.employer = new_employee
     go_to_queue(self,new_employee)
 
+'''
+Her bruges 1 tidsskridt mere per kunde, da vi først rykker hen til foreste plads i køen og så i næste tidsskridt
+tjekker om vi står forest i køen og begynder buy_beer der.'''
 def queuing(self, employee):
     for i in range(0, len(employee.queue_list)):
         if employee.queue_list[i] == self.pos:
@@ -89,6 +92,19 @@ def queuing(self, employee):
                 self.model.grid.move_agent(self, employee.queue_list[i-1])
             else:
              # hvis der ikke er en ledig plass i køen foran deg, bliv stående.
+                return
+'''
+Her bruges ikke 1 "ekstra" tidsskridt, da vi rykker hen til foreste plads i køen 
+og begynder buy_beer der med det samme'''
+def queuing2(self,employee):
+    for i in range(1,len(employee.queue_list)):
+        if employee.queue_list[i] == self.pos:
+            if self.model.grid.is_cell_empty(employee.queue_list[i-1]):#move in queue
+                self.model.grid.move_agent(self, employee.queue_list[i-1])
+                if self.pos == employee.queue_list[0]: #Tjek når agenten har rykket sig om den står forest i køen
+                    buy_beer(self,employee)
+                    self.buying = True
+            else:#cant move in queue
                 return
 
 def distance(pos1,pos2):
@@ -117,8 +133,12 @@ class guest(Agent):
          possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
          possible_empty_steps = []
          for position in possible_steps:
-            if self.model.grid.is_cell_empty(position):
-                possible_empty_steps.append(position)
+            if self.at_concert == False:
+                if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
+                    possible_empty_steps.append(position)
+            else:
+                 if self.model.grid.is_cell_empty(position):
+                    possible_empty_steps.append(position)
 
          if possible_empty_steps == []:
              return
@@ -152,15 +172,15 @@ class guest(Agent):
         if self.drinking_beer == 0:
             self.drinking_ = False
 
+
         if self.buying_beer_counter > 0:
-            self.buying_beer_counter = self.buying_beer_counter-1
+            self.buying_beer_counter = max(0,self.buying_beer_counter-1)
             if self.buying_beer_counter == 0:
                 self.buying = False
                 self.queuing = False
                 self.drinking_beer = 20
                 self.drinking_ = True
                 self.go_to_scene()
-                wander(self)
             else:
                 return
 
@@ -184,7 +204,7 @@ class guest(Agent):
              else: #at_concert = True, gå til koncert
                  self.go_to_scene()
         else: #queuing = True, gå i køen
-            queuing(self, self.employer)
+            queuing2(self, self.employer)
 
 class employee(Agent):
      def __init__(self, id, model):
@@ -205,7 +225,8 @@ class employee(Agent):
 
      def step(self):
          self.dispatch_time = max(0,self.dispatch_time-1)
-         if self.dispatch_time==0:
+         #Kun busy=False, hvis din dispatch_time = 0 OG der ikke er nogen forest i din kø
+         if self.dispatch_time==0 and self.model.grid.is_cell_empty(self.queue_list[0]):
              self.busy = False
 
          #If there is less than 10 beers ready, pour beers, takes 2 minutes

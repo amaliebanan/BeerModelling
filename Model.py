@@ -80,8 +80,7 @@ class Model(Model):
         self.schedule = SimultaneousActivation(self)
 
         #Datacollector to collect our data (pouring time, dispatch time, etc)
-        self.datacollector = DataCollector(model_reporters={"pouring_time": lambda m: pouring_time(self),
-                                                            "busy": lambda m: busy_employees(self),
+        self.datacollector = DataCollector(model_reporters={"busy": lambda m: busy_employees(self),
                                                             "queuing": lambda m: queuing(self)})
 
         #Initiate minute, hour and day
@@ -187,9 +186,7 @@ def setUpStalls(self):
         self.desk_pos = self.desk_pos + desk_pos
 
         #People cannot get past the desk-line (the ones colored pink)
-        desk_pos_ = [(x-1,y-2),(x-2,y-2),(x-2,y-1),(x+1,y-2),(x+2,y-2),(x+2,y-1),
-                     (x+1,y+2),(x+2,y+2),(x+2,y+1),(x-1,y+2),(x-2,y+2),(x-2,y+1),
-                     (x-1,y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1)]
+        desk_pos_ = [(x-1,y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1)]
 
         for pos_ in desk_pos_:
             newAgent = ac.desk(pos_, self)
@@ -250,7 +247,6 @@ def setUpFence(self):
         newAgent.orientation = 'v'
         x,y = pos
         self.grid.place_agent(newAgent,(x,y))
-
 
     for pos in pos_horizontal_fence:
         newAgent = ac.fence(ids.pop(), self)

@@ -86,8 +86,8 @@ class Model(Model):
 
         #The location of the beer stalls
         self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
-        self.entre_pos = [(25,0),(25,49),(40,0),(40,49),(49,39),(49,11)]
-        self.concert_is_on = False
+        self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
+        self.concert_has_ended = False
 
 
         self.employees = []
@@ -106,16 +106,13 @@ class Model(Model):
 
     def step(self):
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
-        print("GTQ",going_to_queue(self))
-        print("QUEUING",queuing(self))
-
 
         #Remove agents that are at an exit-pos and thus are leaving the festival site
-        leaving = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.leaving]
-        if len(leaving)>0:
-            for a in leaving:
-                self.grid.remove_agent(a)
-                self.schedule.remove(a)
+        agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True]
+
+        for a in agents_that_left:
+            self.schedule.remove(a)
+            self.grid.remove_agent(a)
 
         self.time_step += 1
 
@@ -129,6 +126,7 @@ class Model(Model):
             agents_go_to_concert(self)
         #Concert is ending
         elif self.time_step == 630:
+            self.concert_has_ended = True
             end_concert(self)
 
         #With poisson-distribution people leave and join the concert
@@ -138,7 +136,6 @@ class Model(Model):
                 guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
                 agent = self.random.choice(guests_at_concert)
                 agent.at_concert = False
-
 
             p_join = np.random.poisson(1/8)
             for i in range(0,p_join):
@@ -161,6 +158,9 @@ class Model(Model):
         busy_employees_at_stalls(self)
 
         mean_busy = mean(self.busy)
+
+        if self.time_step == 720:
+            self.running = False
 
 def setUpGuests(self,N):
     for i in range(0,N):

@@ -55,13 +55,13 @@ def go_to_queue(self,employee):
         return
 
     if goal_pos in possible_empty_steps:
-        if self.model.grid.is_cell_empty(goal_pos) is True: #Cell is empty
+        if self.model.grid.is_cell_empty(goal_pos) == True: #Cell is empty
              self.model.grid.move_agent(self, goal_pos)
              self.queuing = True
              self.going_to_queue = False
         #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
         # Dont get it..
-        elif self.model.grid.is_cell_empty(goal_pos) is False:
+        elif self.model.grid.is_cell_empty(goal_pos) == False:
             print("QUEUE IS FULL",self.pos,employee.pos)
             change_queue(self,employee)
             print(self.pos,employee.pos)
@@ -126,6 +126,27 @@ class guest(Agent):
         self.hey = False
         self.drinking_beer = 0
         self.buying = False
+        self.leave = False
+        self.has_left = False
+        self.exit_position = ()
+
+     def go_to_exit(self, exit_pos):
+         distances = []
+         possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
+         possible_empty_steps = []
+         for position in possible_steps:
+            if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
+                possible_empty_steps.append(position)
+
+         if possible_empty_steps == []:
+             return
+         for pos in possible_empty_steps:
+             distances.append((distance(exit_pos,pos),pos))
+         x_,y_ = min(distances,key=lambda x:x[0])[1]
+         if (x_,y_) == exit_pos:
+             self.has_left = True
+
+         self.model.grid.move_agent(self,(x_,y_))
 
      def go_to_scene(self):
          distances = []
@@ -180,24 +201,50 @@ class guest(Agent):
                 self.queuing = False
                 self.drinking_beer = 100
                 self.drinking_ = True
-                self.go_to_scene()
+                if self.model.concert_has_ended == False:
+                    self.go_to_scene()
+                else:
+                     if self.exit_position == ():
+                        pos = random.choice(self.model.entre_pos)
+                        self.exit_position = pos
+                        self.go_to_exit(self.exit_position)
             else:
                 return
 
         if self.drinking_beer>0:
+            if self.model.concert_has_ended == False:
               self.go_to_scene()
+            else:
+                if self.exit_position == ():
+                    pos = random.choice(self.model.entre_pos)
+                    self.exit_position = pos
+                    self.go_to_exit(self.exit_position)
+                else:
+                    self.go_to_exit(self.exit_position)
+
+        if self.leave == True:
+            if self.exit_position == ():
+                pos = random.choice(self.model.entre_pos)
+                self.exit_position = pos
+
+            self.go_to_exit(self.exit_position)
 
         if self.queuing == False:
              if self.at_concert == False:
                  if self.going_to_queue == True:
                      go_to_queue(self,self.employer)
-                 elif self.going_to_queue == False and self.drinking_beer == 0 and self.leaving == False:
+                 elif self.going_to_queue == False and self.drinking_beer == 0 and self.leave == False:
                       #Før og efter koncerten, tag de agenter, der er tæt på stall
                      if self.model.time_step < 630:
                          self.go_to_closest_stall()
-                     else:
-                          self.go_to_random_stall()
-
+                     else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
+                         # random employee i den stall og gå hen mod den
+                         a = bernoulli.rvs(0.5)
+                         if a == 1:
+                             self.go_to_random_stall()
+                         else:
+                             wander(self)
+                             self.leave = True
 
 
              else: #at_concert = True, gå til koncert

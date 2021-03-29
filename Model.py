@@ -103,7 +103,11 @@ class Model(Model):
 
     def step(self):
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
+        agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True]
 
+        for a in agents_that_left:
+            self.schedule.remove(a)
+            self.grid.remove_agent(a)
 
         self.time_step += 1
 
@@ -126,7 +130,6 @@ class Model(Model):
                 guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
                 agent = self.random.choice(guests_at_concert)
                 agent.at_concert = False
-
 
             p_join = np.random.poisson(1/8)
             for i in range(0,p_join):

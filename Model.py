@@ -87,6 +87,7 @@ class Model(Model):
         #The location of the beer stalls
         self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
         self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
+        self.extra_exit_pos = [(6,0),(6,49),(36,0),(36,49)]
         self.concert_has_ended = False
         self.concert_is_on = False
 
@@ -96,6 +97,7 @@ class Model(Model):
         self.busy = []
 
         self.sceneCoords = [(0,i) for i in range(math.floor(height/2)-7,math.floor(height/2)+6)]
+        self.scene_pos = (0,24)
         setUpGuests(self,N)
         setUpScene(self)
         setUpStalls(self)

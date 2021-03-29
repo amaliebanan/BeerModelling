@@ -84,6 +84,7 @@ class Model(Model):
 
         #The location of the beer stalls
         self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
+        self.entre_pos = [(25,0),(25,49),(40,0),(40,49),(49,10),(49,39)]
 
 
         self.employees = []
@@ -137,7 +138,7 @@ class Model(Model):
                     max_id = max([a.id for a in self.schedule.agents if isinstance(a,ac.guest)])
                     newAgent = ac.guest(max_id+1, self)
                     self.schedule.add(newAgent)
-                    x_,y_ = self.random.choice([(25,0),(25,49),(40,0),(40,49),(49,10),(49,39)])
+                    x_,y_ = self.random.choice(self.entre_pos)
                     newAgent.at_concert = True
                     self.grid.place_agent(newAgent,(x_,y_))
 

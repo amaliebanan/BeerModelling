@@ -59,8 +59,7 @@ def go_to_queue(self,employee):
              self.model.grid.move_agent(self, goal_pos)
              self.queuing = True
              self.going_to_queue = False
-        #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
-        # Dont get it..
+        #Queue is full, find new queue
         else:
             change_queue(self,employee)
     else:#If goal_pos is not in possible steps, move to cell that is closest to goal_cell

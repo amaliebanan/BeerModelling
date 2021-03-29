@@ -83,9 +83,10 @@ class Model(Model):
         self.hour_count = 1
         self.day_count = 1
 
-
+  #ved 2 boder få dem med radius fra fjernet bod til at gå mod de to synlige ?
+        
         #The location of the beer stalls
-        self.stall_positions = [(15,44),(15,7)] #,(40,44),(40,7)
+        self.stall_positions = [(15,44),(15,7),(40,44),(40,7)]
         self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
         self.extra_exit_pos = [(6,0),(6,49),(36,0),(36,49)]
         self.concert_has_ended = False

@@ -88,6 +88,7 @@ class Model(Model):
         self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
         self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
         self.concert_has_ended = False
+        self.concert_is_on = False
 
 
         self.employees = []
@@ -123,15 +124,17 @@ class Model(Model):
 
         #Concert is starting
         if self.time_step == 90:
+            self.concert_is_on = True
             agents_go_to_concert(self)
         #Concert is ending
         elif self.time_step == 630:
+            self.concert_is_on = False
             self.concert_has_ended = True
             end_concert(self)
 
         #With poisson-distribution people leave and join the concert
         if self.time_step in [i for i in range(91,630)]:
-            p_leave = np.random.poisson(1/8)
+            p_leave = np.random.poisson(1/4)
             for i in range(0,p_leave):
                 guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == True]
                 agent = self.random.choice(guests_at_concert)

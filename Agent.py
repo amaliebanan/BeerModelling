@@ -54,26 +54,24 @@ def go_to_queue(self,employee):
     if possible_empty_steps == []:
         return
 
-    if goal_pos in possible_empty_steps:
-        if self.model.grid.is_cell_empty(goal_pos) == True: #Cell is empty
+    if goal_pos in possible_steps:
+        if employee.queue_is_full() == False: #Queue is not full
              self.model.grid.move_agent(self, goal_pos)
              self.queuing = True
              self.going_to_queue = False
         #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
         # Dont get it..
-        elif self.model.grid.is_cell_empty(goal_pos) == False:
-            print("QUEUE IS FULL",self.pos,employee.pos)
+        else:
             change_queue(self,employee)
-            print(self.pos,employee.pos)
-    else: #If goal_pos is not in possible steps, move to cell that is closest to goal_cell
+    else:#If goal_pos is not in possible steps, move to cell that is closest to goal_cell
         distances = []
         for pos in possible_empty_steps:
             distances.append((distance(goal_pos, pos), pos))
         x_,y_ = min(distances,key=lambda x:x[0])[1]
         self.model.grid.move_agent(self, (x_,y_))
 
-def change_queue(self,employee):
-    the_three_other_employees = [e for e in self.model.schedule.agents if distance(e.pos,employee.pos)<2]
+def change_queue(self,employee1):
+    the_three_other_employees = [e for e in self.model.schedule.agents if isinstance(e,employee) and 0.1 < distance(e.pos,employee1.pos) < 3]
     new_employee = the_three_other_employees[random.randint(0,2)]
     self.employer = new_employee
     go_to_queue(self,new_employee)
@@ -169,7 +167,11 @@ class guest(Agent):
          self.model.grid.move_agent(self,(x_,y_))
 
      def go_to_closest_stall(self):
-         stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < 5]
+         if self.model.concert_is_on == False:
+             d = 5
+         else:
+             d = 10
+         stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < d]
          if stall == []:
              wander(self)
          else:
@@ -239,7 +241,7 @@ class guest(Agent):
                          self.go_to_closest_stall()
                      else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
                          # random employee i den stall og gå hen mod den
-                         a = bernoulli.rvs(0.5)
+                         a = bernoulli.rvs(0.6)
                          if a == 1:
                              self.go_to_random_stall()
                          else:
@@ -268,6 +270,11 @@ class employee(Agent):
         self.stall = ()
 
         self.queue_list = []
+
+    #Returns True is queue is full, False is there is room in queue
+     def queue_is_full(self):
+         a = [self.model.grid.is_cell_empty(a) for a in self.queue_list]
+         return not any(a)
 
      def step(self):
          self.dispatch_time = max(0,self.dispatch_time-1)

@@ -23,7 +23,9 @@ our logical algorithm (e.g. should the agents move randomly or simultaneously?)
 def busy_employees(self):
     employees_busy = [a for a in self.schedule.agents if isinstance(a,ac.employee) and a.busy == True]
     return len(employees_busy)
-
+def number_of_guests(self):
+    guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
+    return len(guests)
 def queuing(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
     return len(agents_queuing)
@@ -40,7 +42,6 @@ def busy_employees_at_stalls(self):
                 busy_employees+=1
         busy.append((stall.id,busy_employees))
     return busy
-
 def agents_go_to_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     percentages = int((len(all_guests)/100)*percentages_go_to_concert)     #get 90% of the guests
@@ -53,7 +54,6 @@ def agents_go_to_concert(self):
         else:
             agent.at_concert = True
             counter+=1
-
 def end_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
 
@@ -85,7 +85,7 @@ class Model(Model):
 
 
         #The location of the beer stalls
-        self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
+        self.stall_positions = [(15,44),(15,7)] #,(40,44),(40,7)
         self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
         self.extra_exit_pos = [(6,0),(6,49),(36,0),(36,49)]
         self.concert_has_ended = False

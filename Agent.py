@@ -46,7 +46,7 @@ def go_to_queue(self):
     possible_empty_steps = []
 
     for position in possible_steps:
-        if self.model.grid.is_cell_empty(position) and position not in employee.queue_list[:-1] and position not in self.model.desk_pos:
+        if (self.model.grid.is_cell_empty(position) and position not in self.model.desk_pos) or position in employee.queue_list[:-1]:
             possible_empty_steps.append(position)
 
     if possible_empty_steps == []:
@@ -153,7 +153,7 @@ class guest(Agent):
              go_to_queue(self)
 
      def go_to_random_stall(self):
-         random_stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall)][random.randint(0,3)]
+         random_stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall)][random.randint(0,len(self.model.stall_positions)-1)]
          employees_closest = [e for e in self.model.schedule.agents if isinstance(e, employee) and e.stall == random_stall] #lager en liste av employees ved den nærmeste stall
          chosen_employee = employees_closest[random.randint(0,3)]
          self.employer = chosen_employee

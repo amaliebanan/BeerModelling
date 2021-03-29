@@ -202,12 +202,26 @@ class guest(Agent):
                 self.queuing = False
                 self.drinking_beer = 100
                 self.drinking_ = True
-                self.go_to_scene()
+                if self.model.concert_has_ended == False:
+                    self.go_to_scene()
+                else:
+                     if self.exit_position == ():
+                        pos = random.choice(self.model.entre_pos)
+                        self.exit_position = pos
+                        self.go_to_exit(self.exit_position)
             else:
                 return
 
         if self.drinking_beer>0:
+            if self.model.concert_has_ended == False:
               self.go_to_scene()
+            else:
+                if self.exit_position == ():
+                    pos = random.choice(self.model.entre_pos)
+                    self.exit_position = pos
+                    self.go_to_exit(self.exit_position)
+                else:
+                    self.go_to_exit(self.exit_position)
 
         if self.leave == True:
             if self.exit_position == ():

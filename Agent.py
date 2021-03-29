@@ -132,7 +132,7 @@ class guest(Agent):
          possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
          possible_empty_steps = []
          for position in possible_steps:
-            if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
+            if self.model.grid.is_cell_empty(position):
                 possible_empty_steps.append(position)
 
          if possible_empty_steps == []:
@@ -151,12 +151,12 @@ class guest(Agent):
          possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
          possible_empty_steps = []
          for position in possible_steps:
-            if self.at_concert == False:
-                if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
-                    possible_empty_steps.append(position)
-            else:
+            #if not self.model.concert_is_on:
+             #   if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
+              #      possible_empty_steps.append(position)
+         #   else:
                  if self.model.grid.is_cell_empty(position):
-                    possible_empty_steps.append(position)
+                     possible_empty_steps.append(position)
 
          if possible_empty_steps == []:
              return

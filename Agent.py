@@ -56,6 +56,7 @@ def go_to_queue(self,employee):
 
     if goal_pos in possible_steps:
 
+
         if self.model.concert_is_on: ##Concert is on
             if not employee.queue_is_crowded():  ##Queue is not crowded, go there
                  self.model.grid.move_agent(self, goal_pos)

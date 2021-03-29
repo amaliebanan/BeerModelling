@@ -55,13 +55,22 @@ def go_to_queue(self,employee):
         return
 
     if goal_pos in possible_steps:
-        if employee.queue_is_full() == False: #Queue is not full
-             self.model.grid.move_agent(self, goal_pos)
-             self.queuing = True
-             self.going_to_queue = False
-        #Queue is full, find new queue
-        else:
-            change_queue(self,employee)
+
+        if self.model.concert_is_on: ##Concert is on
+            if not employee.queue_is_crowded():  ##Queue is not crowded, go there
+                 self.model.grid.move_agent(self, goal_pos)
+                 self.queuing = True
+                 self.going_to_queue = False
+            else:                   #Queue is crowded
+                change_queue(self,employee)
+        else: #Concert is not on
+            if not employee.queue_is_full(): ## Queue is NOT full
+                self.model.grid.move_agent(self, goal_pos)
+                self.queuing = True
+                self.going_to_queue = False
+            else:
+                change_queue(self,employee)
+
     else:#If goal_pos is not in possible steps, move to cell that is closest to goal_cell
         distances = []
         for pos in possible_empty_steps:
@@ -151,12 +160,8 @@ class guest(Agent):
          possible_steps = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
          possible_empty_steps = []
          for position in possible_steps:
-            #if not self.model.concert_is_on:
-             #   if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
-              #      possible_empty_steps.append(position)
-         #   else:
-                 if self.model.grid.is_cell_empty(position):
-                     possible_empty_steps.append(position)
+             if self.model.grid.is_cell_empty(position):
+                 possible_empty_steps.append(position)
 
          if possible_empty_steps == []:
              return
@@ -167,9 +172,9 @@ class guest(Agent):
 
      def go_to_closest_stall(self):
          if self.model.concert_is_on == False:
-             d = 5
+             d = 7
          else:
-             d = 10
+             d = 15
          stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall) and distance(s.pos,self.pos) < d]
          if stall == []:
              wander(self)
@@ -178,8 +183,8 @@ class guest(Agent):
              get_distance_to_employees = [(distance(e.pos,self.pos),e) for e in employees_closest]
              closest_employee = min(get_distance_to_employees,key=lambda x:x[0])[1]
              self.employer = closest_employee
-             go_to_queue(self,self.employer)
              self.going_to_queue = True
+             go_to_queue(self,self.employer)
 
      def go_to_random_stall(self):
          random_stall = [s for s in self.model.schedule.agents if isinstance(s,beerstall)][random.randint(0,3)]
@@ -274,6 +279,14 @@ class employee(Agent):
      def queue_is_full(self):
          a = [self.model.grid.is_cell_empty(a) for a in self.queue_list]
          return not any(a)
+
+     def queue_is_crowded(self):
+        a = [self.model.grid.is_cell_empty(a) for a in self.queue_list]
+        if sum(a)>4:
+            return False
+        else:
+            return True
+
 
      def step(self):
          self.dispatch_time = max(0,self.dispatch_time-1)

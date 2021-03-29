@@ -1,6 +1,6 @@
 from mesa import Agent, Model
 import math
-from scipy.stats import truncnorm
+from scipy.stats import truncnorm,bernoulli
 import random
 
 def wander(self):
@@ -178,7 +178,7 @@ class guest(Agent):
             if self.buying_beer_counter == 0:
                 self.buying = False
                 self.queuing = False
-                self.drinking_beer = 20
+                self.drinking_beer = 100
                 self.drinking_ = True
                 self.go_to_scene()
             else:
@@ -191,13 +191,12 @@ class guest(Agent):
              if self.at_concert == False:
                  if self.going_to_queue == True:
                      go_to_queue(self,self.employer)
-                 elif self.going_to_queue == False and self.drinking_beer == 0:
+                 elif self.going_to_queue == False and self.drinking_beer == 0 and self.leaving == False:
                       #Før og efter koncerten, tag de agenter, der er tæt på stall
                      if self.model.time_step < 630:
                          self.go_to_closest_stall()
-                     else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
-                         # random employee i den stall og gå hen mod den
-                         self.go_to_random_stall()
+                     else:
+                          self.go_to_random_stall()
 
 
 

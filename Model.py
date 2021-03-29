@@ -27,7 +27,9 @@ def busy_employees(self):
 def queuing(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
     return len(agents_queuing)
-
+def going_to_queue(self):
+    agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.going_to_queue == True]
+    return len(agents_queuing)
 def busy_employees_at_stalls(self):
     stalls = [s for s in self.schedule.agents if isinstance(s,ac.beerstall)]
     busy = []
@@ -84,7 +86,8 @@ class Model(Model):
 
         #The location of the beer stalls
         self.stall_positions = [(15,44),(40,7),(15,7),(40,44)]
-        self.entre_pos = [(25,0),(25,49),(40,0),(40,49),(49,10),(49,39)]
+        self.entre_pos = [(25,0),(25,49),(40,0),(40,49),(49,39),(49,11)]
+        self.concert_is_on = False
 
 
         self.employees = []
@@ -103,7 +106,16 @@ class Model(Model):
 
     def step(self):
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
+        print("GTQ",going_to_queue(self))
+        print("QUEUING",queuing(self))
 
+
+        #Remove agents that are at an exit-pos and thus are leaving the festival site
+        leaving = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.leaving]
+        if len(leaving)>0:
+            for a in leaving:
+                self.grid.remove_agent(a)
+                self.schedule.remove(a)
 
         self.time_step += 1
 

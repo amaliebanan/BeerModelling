@@ -55,13 +55,14 @@ def go_to_queue(self,employee):
         return
 
     if goal_pos in possible_empty_steps:
-        if self.model.grid.is_cell_empty(goal_pos) is True: #Cell is empty
+        if self.model.grid.is_cell_empty(goal_pos) == True: #Cell is empty
              self.model.grid.move_agent(self, goal_pos)
              self.queuing = True
              self.going_to_queue = False
         #Queue is full, find new queue, virker ikke!!!! miv (åbenbart bliver is_cell_empty(goal_pos) aldrig False,
         # Dont get it..
-        elif self.model.grid.is_cell_empty(goal_pos) is False:
+        #elif self.model.grid.is_cell_empty(goal_pos) == False:
+        else:
             print("QUEUE IS FULL",self.pos,employee.pos)
             change_queue(self,employee)
             print(self.pos,employee.pos)
@@ -225,7 +226,7 @@ class guest(Agent):
                          self.go_to_closest_stall()
                      else: #Hvis koncerten er start og agenten IKKE deltager (at_concert=False), så tag random stall og
                          # random employee i den stall og gå hen mod den
-                         a = bernoulli.rvs(0.5)
+                         a = bernoulli.rvs(0.99)
                          if a == 1:
                              self.go_to_random_stall()
                          else:

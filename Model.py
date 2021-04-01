@@ -6,12 +6,15 @@ from statistics import mean
 import numpy as np
 from scipy.stats import bernoulli
 import random
+import collections
+
 import math
 from itertools import chain
 import sys
 from mesa.datacollection import DataCollector
 
 percentages_go_to_concert = 90
+one_stall = False
 '''
 The Model-object is responsible for the logical structure of our ABM. 
 
@@ -23,15 +26,28 @@ our logical algorithm (e.g. should the agents move randomly or simultaneously?)
 def busy_employees(self):
     employees_busy = [a for a in self.schedule.agents if isinstance(a,ac.employee) and a.busy == True]
     return len(employees_busy)
+
 def number_of_guests(self):
     guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     return len(guests)
+
+def number_of_transactions(self):
+    agents = [a.number_of_transaction for a in self.schedule.agents if isinstance(a,ac.guest)]
+    deleted = [a.number_of_transaction for a in self.deleted_agents]
+    return sum(agents+deleted)
+
 def queuing(self):
+    agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.pos in self.queues]
+    return len(agents_queuing)
+
+def queuing2(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
     return len(agents_queuing)
+
 def going_to_queue(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.going_to_queue == True]
     return len(agents_queuing)
+
 def busy_employees_at_stalls(self):
     stalls = [s for s in self.schedule.agents if isinstance(s,ac.beerstall)]
     busy = []
@@ -42,6 +58,7 @@ def busy_employees_at_stalls(self):
                 busy_employees+=1
         busy.append((stall.id,busy_employees))
     return busy
+
 def agents_go_to_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     percentages = int((len(all_guests)/100)*percentages_go_to_concert)     #get 90% of the guests
@@ -54,6 +71,7 @@ def agents_go_to_concert(self):
         else:
             agent.at_concert = True
             counter+=1
+
 def end_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
 
@@ -75,7 +93,8 @@ class Model(Model):
 
         #Datacollector to collect our data (pouring time, dispatch time, etc)
         self.datacollector = DataCollector(model_reporters={"busy": lambda m: busy_employees(self),
-                                                            "queuing": lambda m: queuing(self)})
+                                                            "queuing": lambda m: queuing(self),
+                                                            "transaction": lambda m: number_of_transactions(self)})
 
         #Initiate minute, hour and day
         self.time_step = 1
@@ -85,8 +104,9 @@ class Model(Model):
 
   #ved 2 boder få dem med radius fra fjernet bod til at gå mod de to synlige ?
         
-        #The location of the beer stalls
+        #The location of the beer stalls ,(15,7),(40,44),(40,7)
         self.stall_positions = [(15,44),(15,7),(40,44),(40,7)]
+
         self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
         self.extra_exit_pos = [(6,0),(6,49),(36,0),(36,49)]
         self.concert_has_ended = False
@@ -107,14 +127,25 @@ class Model(Model):
 
         #List of all the queues' position (2D array flattened using chain.from_iterable)
         self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
+        self.deleted_agents = []
 
     def step(self):
+        e = [e.queue_list[-1] for e in self.schedule.agents if isinstance(e,ac.employee)]
+        a = [a.pos for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
+     #   print("THIS IS THE SET",set([x for x in a if a.count(x) > 1]))
+      #  print(e)
+
+       # print(number_of_transactions(self),len(a),len(self.deleted_agents))
+        #print(number_of_transactions(self)/(len(a)+len(self.deleted_agents)))
+       # print(queuing2(self))
+
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
 
         #Remove agents that are at an exit-pos and thus are leaving the festival site
         agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True]
 
         for a in agents_that_left:
+            self.deleted_agents.append(a)
             self.schedule.remove(a)
             self.grid.remove_agent(a)
 
@@ -192,9 +223,12 @@ def setUpStalls(self):
         x,y = positions.pop()
         self.grid.place_agent(newAgent,(x,y))
 
+        newAgent.exit_pos = (x-4,y-3)
+
         #Here people order and pay for beer
         desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
         self.desk_pos = self.desk_pos + desk_pos
+
 
         #People cannot get past the desk-line (the ones colored pink)
         desk_pos_ = [(x-1,y-1),(x+1,y+1),(x-1,y+1),(x+1,y-1)]
@@ -207,14 +241,21 @@ def setUpStalls(self):
 def setUpEmployees(self):
     teams = []
     positions = reversed(self.stall_positions)
+
     for pos in positions:
         e1 = (pos[0],pos[1]-1)
         e2 = (pos[0]-1,pos[1])
         e3 = (pos[0]+1,pos[1])
         e4 = (pos[0],pos[1]+1)
+
         team = (e1,e2,e3,e4)
         teams.append(team)
+
+
+
+
     dir = ("s","w","e","n")
+
     counter = 0
     for t in teams:
         stall = [stall for stall in self.schedule.agents if stall.id == 2000+counter][0]
@@ -223,12 +264,16 @@ def setUpEmployees(self):
             newAgent = ac.employee(stall.id+(i+1), self)
             direction = dir[i]
             newAgent.stall = stall
+            newAgent.exit_pos = newAgent.stall.exit_pos
             self.schedule.add(newAgent)
             x,y = t[i]
             self.grid.place_agent(newAgent,(x,y))
             self.employees.append(newAgent)
             temp.append(newAgent)
             newAgent.queue_list = make_queue((x,y), direction)
+            if one_stall == True and i%2==0:
+                newAgent.at_work = False
+
         stall.employees = temp
         counter += 5
 

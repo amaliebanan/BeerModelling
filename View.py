@@ -1,7 +1,7 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule, TextElement
 from mesa.visualization.ModularVisualization import ModularServer
-from Model import Model,busy_employees
-from Model import Model as m
+from Model import Model,busy_employees,number_of_guests
+
 import Agent as ac
 
 width, height = 50,50
@@ -20,14 +20,17 @@ def draw(agent):
     if isinstance(agent,ac.guest):
       portrayal["Color"] = "#54a173"
       portrayal["scale"] = 0.9
-      if agent.going_to_queue == True:
-          portrayal["Color"] = "silver"
-      if agent.queuing == True:
-          portrayal["Color"] = "gold"
+
+      if agent.at_concert == True:
+          portrayal["Color"] = "#F56C00"
       if agent.drinking_ == True:
-        portrayal["Shape"] = "resources/beer.png"
+        portrayal["Color"] = "gold"
+      if agent.going_to_queue == True:
+          portrayal["Color"] = "#797979"
+      if agent.queuing == True:
+          portrayal["Color"] = "#5BB2E8"
       if agent.buying == True:
-            portrayal["Color"] = "#eff54c"
+            portrayal["Color"] = "#13679B"
 
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
@@ -73,7 +76,7 @@ class pouring_Time(TextElement):
         pass
 
     def render(self, model):
-        return "Pouring time: " + str(busy_employees())
+        return "Number of guests: " + str(number_of_guests(model))
 
 class busy_employees(TextElement):
     def __init__(self):
@@ -84,7 +87,7 @@ class busy_employees(TextElement):
 
 grid = CanvasGrid(draw, width, height, 1000,1000)
 
-pouring_chart = ChartModule([{"Label":"pouring_time","Color":"Black"}], data_collector_name="datacollector")
+pouring_chart = ChartModule([{"Label":"number_of_guests","Color":"Black"}], data_collector_name="datacollector")
 #busy_employees_chart = ChartModule([{"Label":"busy","Color":"Black"}], data_collector_name="datacollector")
 pt = pouring_Time()
 busy_ = busy_employees()

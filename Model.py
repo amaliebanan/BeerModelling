@@ -240,13 +240,13 @@ def setUpStalls(self):
         #self.stall_positions = [(15,44),(15,7),(40,44)]
 
         if y>25: #Where to put exit-positions
-            newAgent.exit_pos.append((x-6,y-3))
-            newAgent.exit_pos.append((x+6,y-3))
+            newAgent.list_stall_exit_pos.append((x-6,y-3))
+            newAgent.list_stall_exit_pos.append((x+6,y-3))
 
         else:
-            newAgent.exit_pos.append((x-6,y+3))
-            newAgent.exit_pos.append((x+6,y+3))
-        for e in newAgent.exit_pos:
+            newAgent.list_stall_exit_pos.append((x-6,y+3))
+            newAgent.list_stall_exit_pos.append((x+6,y+3))
+        for e in newAgent.list_stall_exit_pos:
             self.exit_pos.append(e)
         #Here people order and pay for beer
         desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
@@ -285,7 +285,7 @@ def setUpEmployees(self):
             newAgent = ac.employee(stall.id+(i+1), self)
             direction = dir[i]
             newAgent.stall = stall
-            newAgent.exit_pos = newAgent.stall.exit_pos
+            newAgent.exit_pos = newAgent.stall.list_stall_exit_pos
             self.schedule.add(newAgent)
             x,y = t[i]
             self.grid.place_agent(newAgent,(x,y))

@@ -15,6 +15,8 @@ from mesa.datacollection import DataCollector
 
 percentages_go_to_concert = 90
 one_stall = False
+number_of_stalls = 3 ##Must be between 1 and 4
+
 '''
 The Model-object is responsible for the logical structure of our ABM. 
 
@@ -32,15 +34,22 @@ def number_of_guests(self):
     return len(guests)
 
 def number_of_transactions(self):
-    agents = [a.number_of_transaction for a in self.schedule.agents if isinstance(a,ac.guest)]
-    deleted = [a.number_of_transaction for a in self.deleted_agents]
-    return sum(agents+deleted)
-
+    if self.time_step<90:
+        agents = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
+        deleted = [a for a in self.deleted_agents]
+        for a in agents+deleted:
+            a.number_of_transaction = 0
+        return 0
+    else:
+        agents = [a.number_of_transaction for a in self.schedule.agents if isinstance(a,ac.guest)]
+        deleted = [a.number_of_transaction for a in self.deleted_agents]
+        return sum(agents+deleted)
+'''
 def queuing(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.pos in self.queues]
     return len(agents_queuing)
-
-def queuing2(self):
+'''
+def queuing(self):
     agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
     return len(agents_queuing)
 
@@ -59,6 +68,7 @@ def busy_employees_at_stalls(self):
         busy.append((stall.id,busy_employees))
     return busy
 
+#Bruger ikke lige pt
 def agents_go_to_concert(self):
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     percentages = int((len(all_guests)/100)*percentages_go_to_concert)     #get 90% of the guests
@@ -95,20 +105,29 @@ class Model(Model):
         self.datacollector = DataCollector(model_reporters={"busy": lambda m: busy_employees(self),
                                                             "queuing": lambda m: queuing(self),
                                                             "transaction": lambda m: number_of_transactions(self)})
-
         #Initiate minute, hour and day
         self.time_step = 1
         self.minute_count = 1
         self.hour_count = 1
         self.day_count = 1
 
-  #ved 2 boder få dem med radius fra fjernet bod til at gå mod de to synlige ?
         
-        #The location of the beer stalls ,(15,7),(40,44),(40,7)
-        self.stall_positions = [(15,44),(15,7),(40,44),(40,7)]
+        #The location of the beer stalls
+        if number_of_stalls == 1:
+            self.stall_positions = [(15,44)]
+        elif number_of_stalls == 2:
+            self.stall_positions = [(15,44),(15,7)]
+        elif number_of_stalls == 3:
+            self.stall_positions = [(15,44),(15,7),(40,44)]
+        elif number_of_stalls == 4:
+            self.stall_positions = [(15,44),(15,7),(40,44),(40,7)]
+        else:
+            self.stall_positions = [(15,44),(15,7),(40,44),(40,7)]
+            print("Invalid number of stalls, default # of stalls chosen which is 4")
 
-        self.entre_pos = [(5,0),(5,49),(35,0),(35,49),(49,35),(49,20)]
-        self.extra_exit_pos = [(6,0),(6,49),(36,0),(36,49)]
+
+
+        self.exit_pos = [(5, 0), (6, 0), (5, 49), (6, 49), (35, 0), (35, 49), (36, 0), (36, 49), (49, 35), (49, 20)]
         self.concert_has_ended = False
         self.concert_is_on = False
 
@@ -128,38 +147,25 @@ class Model(Model):
         #List of all the queues' position (2D array flattened using chain.from_iterable)
         self.queues = list(chain.from_iterable([e.queue_list for e in self.schedule.agents if isinstance(e,ac.employee)]))
         self.deleted_agents = []
+        setUpEntrePos(self)
 
     def step(self):
-        e = [e.queue_list[-1] for e in self.schedule.agents if isinstance(e,ac.employee)]
-        a = [a.pos for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
-     #   print("THIS IS THE SET",set([x for x in a if a.count(x) > 1]))
-      #  print(e)
-
-       # print(number_of_transactions(self),len(a),len(self.deleted_agents))
-        #print(number_of_transactions(self)/(len(a)+len(self.deleted_agents)))
-       # print(queuing2(self))
 
         self.not_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
 
         #Remove agents that are at an exit-pos and thus are leaving the festival site
         agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True]
-
         for a in agents_that_left:
             self.deleted_agents.append(a)
             self.schedule.remove(a)
             self.grid.remove_agent(a)
 
-        self.time_step += 1
-
-        if self.time_step%6==0:
-            self.minute_count += 1
-        if self.minute_count%60 == 0:
-            self.hour_count += 1
-
         #Concert is starting
         if self.time_step == 90:
             self.concert_is_on = True
-            agents_go_to_concert(self)
+            all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
+            for a in all_guests:
+                a.at_concert = True
         #Concert is ending
         elif self.time_step == 630:
             self.concert_is_on = False
@@ -184,7 +190,7 @@ class Model(Model):
                     max_id = max([a.id for a in self.schedule.agents if isinstance(a,ac.guest)])
                     newAgent = ac.guest(max_id+1, self)
                     self.schedule.add(newAgent)
-                    x_,y_ = self.random.choice(self.entre_pos)
+                    x_,y_ = self.random.choice(self.exit_pos)
                     newAgent.at_concert = True
                     self.grid.place_agent(newAgent,(x_,y_))
 
@@ -194,10 +200,18 @@ class Model(Model):
 
         busy_employees_at_stalls(self)
 
-        mean_busy = mean(self.busy)
 
+        #Stop model after 720 timesteps
         if self.time_step == 720:
             self.running = False
+
+        self.time_step += 1
+
+        if self.time_step%6==0:
+            self.minute_count += 1
+        if self.minute_count%60 == 0:
+            self.hour_count += 1
+
 
 def setUpGuests(self,N):
     for i in range(0,N):
@@ -217,14 +231,23 @@ def setUpScene(self):
 
 def setUpStalls(self):
     positions = list.copy(self.stall_positions)
-    for i in range(2000,2000+len(positions)*5,5):
+    counter=0
+    for i in range(2000,2000+len(self.stall_positions)*5,5):
         newAgent = ac.beerstall(i, self)
         self.schedule.add(newAgent)
         x,y = positions.pop()
         self.grid.place_agent(newAgent,(x,y))
+        #self.stall_positions = [(15,44),(15,7),(40,44)]
 
-        newAgent.exit_pos = (x-4,y-3)
+        if y>25: #Where to put exit-positions
+            newAgent.exit_pos.append((x-6,y-3))
+            newAgent.exit_pos.append((x+6,y-3))
 
+        else:
+            newAgent.exit_pos.append((x-6,y+3))
+            newAgent.exit_pos.append((x+6,y+3))
+        for e in newAgent.exit_pos:
+            self.exit_pos.append(e)
         #Here people order and pay for beer
         desk_pos = [(x-2,y),(x+2,y),(x,y-2),(x,y+2)]
         self.desk_pos = self.desk_pos + desk_pos
@@ -237,6 +260,7 @@ def setUpStalls(self):
             newAgent = ac.desk(pos_, self)
             self.schedule.add(newAgent)
             self.grid.place_agent(newAgent,pos_)
+        counter+=1
 
 def setUpEmployees(self):
     teams = []
@@ -250,9 +274,6 @@ def setUpEmployees(self):
 
         team = (e1,e2,e3,e4)
         teams.append(team)
-
-
-
 
     dir = ("s","w","e","n")
 
@@ -311,3 +332,9 @@ def setUpFence(self):
         x,y = pos
         self.grid.place_agent(newAgent,(x,y))
 
+def setUpEntrePos(self):
+     ids = [i for i in range (4000, 4000 + len(self.exit_pos))]
+     for pos in self.exit_pos:
+        newAgent = ac.exit(ids.pop(), self)
+        self.schedule.add(newAgent)
+        self.grid.place_agent(newAgent,pos)

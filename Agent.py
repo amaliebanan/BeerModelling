@@ -9,7 +9,7 @@ def wander(self):
     possible_empty_steps,back_up_list = [],[]
 
     for position in possible_steps:
-        if self.model.grid.is_cell_empty(position) and position not in self.model.queues:
+        if (self.model.grid.is_cell_empty(position) and position not in self.model.queues) or position in self.model.exit_pos:
             possible_empty_steps.append(position)
 
     #Hvis ingen af nabo-cellerne er tomme, må agenten gerne gå igennem andre guest-agenter (dog ikke igennem køen!)
@@ -192,7 +192,7 @@ class guest(Agent):
               self.go_to_specific_pos(self.model.scene_pos)
             else: #Hvis koncerten er slut, skal man efter at have købt øl gå mod exit
                 if self.exit_position == ():
-                    pos = random.choice(self.model.entre_pos+self.model.extra_exit_pos)
+                    pos = random.choice(self.model.exit_pos)
                     self.exit_position = pos
                     self.go_to_specific_pos(self.exit_position,"exit")
                 else:
@@ -206,11 +206,11 @@ class guest(Agent):
                 self.drinking_beer = 100
                 self.drinking_ = True
                 if self.model.concert_has_ended == False:
-                    self.model.grid.move_agent(self,self.employer.exit_pos)
+                    self.model.grid.move_agent(self,self.employer.exit_pos[random.randint(0,1)])
                     self.go_to_specific_pos(self.model.scene_pos)
                 else:
                      if self.exit_position == ():
-                        self.exit_position = random.choice(self.model.entre_pos)
+                        self.exit_position = random.choice(self.model.exit_pos)
                         self.go_to_specific_pos(self.exit_position,"exit")
             else:
                 return #Dont move
@@ -218,7 +218,7 @@ class guest(Agent):
         #Hvis man er på vej væk fra pladsen (koncerten er slut og man skal hjem)
         if self.leave == True:
             if self.exit_position == ():
-                pos = random.choice(self.model.entre_pos)
+                pos = random.choice(self.model.exit_pos)
                 self.exit_position = pos
 
             self.go_to_specific_pos(self.exit_position,"exit")
@@ -299,7 +299,7 @@ class beerstall(Agent):
         self.employees = []
         self.queue_starting_pos = []
         self.beers_ready = 15
-        self.exit_pos = ()
+        self.exit_pos = []
 
 class orangeScene(Agent):
      def __init__(self, id, model):
@@ -316,6 +316,13 @@ class fence(Agent):
 
 class desk(Agent):
       def __init__(self, id, model):
+        super().__init__(id, model)
+        self.id = id
+        self.model = model
+        self.orientation = ()
+
+class exit(Agent):
+     def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
         self.model = model

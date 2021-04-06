@@ -18,9 +18,6 @@ def draw(agent):
         return
     portrayal = {"Shape": "circle", "r": 0.8, "Filled": "true", "Layer": 0}
     if isinstance(agent,ac.guest):
-      portrayal["Color"] = "#54a173"
-      portrayal["scale"] = 0.9
-
       if agent.at_concert == True:
           portrayal["Color"] = "#F56C00"
       if agent.drinking_ == True:
@@ -31,6 +28,9 @@ def draw(agent):
           portrayal["Color"] = "#5BB2E8"
       if agent.buying == True:
             portrayal["Color"] = "#13679B"
+      if agent.at_concert == False and agent.drinking_beer == False and agent.going_to_queue == False and agent.queuing == False:
+          portrayal["Color"] = "#54a173"
+          portrayal["scale"] = 0.9
 
     if isinstance(agent,ac.orangeScene):
       portrayal["Color"] = "orange"
@@ -67,6 +67,9 @@ def draw(agent):
         portrayal["Color"] = "pink"
         portrayal["w"] = 0.75
         portrayal["h"] = 0.75
+    if isinstance(agent,ac.exit):
+        portrayal["Shape"] = "resources/portal2.jpg"
+        portrayal["scale"] = 0.9
 
 
     return portrayal
@@ -85,14 +88,14 @@ class busy_employees(TextElement):
     def render(self, model):
         return "# of busy agents: " + str(busy_employees(model))
 
-grid = CanvasGrid(draw, width, height, 1000,1000)
+grid = CanvasGrid(draw, width, height, 1200,1200)
 
 pouring_chart = ChartModule([{"Label":"number_of_guests","Color":"Black"}], data_collector_name="datacollector")
 #busy_employees_chart = ChartModule([{"Label":"busy","Color":"Black"}], data_collector_name="datacollector")
 pt = pouring_Time()
 busy_ = busy_employees()
 server = ModularServer(Model,
-                       [grid,pt,pouring_chart],
+                       [grid,pt],
                        "Roskilde Model",
                        {"N":500, "width":width, "height":height})
 

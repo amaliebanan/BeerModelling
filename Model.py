@@ -182,11 +182,6 @@ class Model(Model):
 
             p_join = np.random.poisson(1/8)
             for i in range(0,p_join):
-                if bernoulli(1/10) == 1:
-                    guests_at_concert = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.at_concert == False]
-                    agent = self.random.choice(guests_at_concert)
-                    agent.at_concert = True
-                else:
                     max_id = max([a.id for a in self.schedule.agents if isinstance(a,ac.guest)])
                     newAgent = ac.guest(max_id+1, self)
                     self.schedule.add(newAgent)

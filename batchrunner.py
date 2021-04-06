@@ -5,7 +5,7 @@ import numpy as np
 
 fixed_params = {"width":50, "height": 50}
 variable_params = {"N": range(500,501)}
-iterationer = 1
+iterationer = 100
 skridt = 635
 
 stalls_ = number_of_stalls
@@ -15,7 +15,7 @@ def truncate(n, decimals=0):
     multiplier = 10 ** decimals
     return int(n * multiplier) / multiplier
 
-
+'''
 def plot_busy(fix_par, var_par, model, iter, steps):
     batch_run = BatchRunner(model,
     variable_parameters=var_par,
@@ -39,7 +39,6 @@ def plot_busy(fix_par, var_par, model, iter, steps):
         mean_busy.append(np.mean(temp)/(stalls_*4))
     sum_of_b =[(number / iter)/(stalls_*4) for number in sum_of_busy] #divide list with number of iterations to get avg
     sum_of_b_correct = sum_of_b[90:631]
-    print(np.std(std_))
 
     time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
     time_correct = [i for i in range(90,631)]
@@ -51,7 +50,7 @@ def plot_busy(fix_par, var_par, model, iter, steps):
     print("mean",mean)
     plt.xlabel('Tidsskridt')
     plt.ylabel('Andel af beskæftigede medarbejdere')
-    plt.title('%s simulationer med 3 ølboder under koncert' %iter,)
+    plt.title('%s simulationer med 1 ølbod under koncert' %iter,)
     plt.legend()
 
     return
@@ -73,31 +72,34 @@ def plot_queuing(fix_par, var_par, model, iter, steps):
 
     data_list = list(batch_run.get_collector_model().values()) # saves batchrunner data in a list
     mean_queue = []
+    std_ = []
     sum_of_queuing_guests = [0]*(steps+1) #makes list for y-values
     for i in range(len(data_list)):
         temp = []
         for j in range(len(data_list[i]["queuing"])):
             sum_of_queuing_guests[j]+=data_list[i]["queuing"][j] #at the right index add number of infected
             temp.append(data_list[i]["queuing"][j])
+            std_.append(data_list[i]["queuing"][j]/(stalls_*4*8))
         mean_queue.append(np.mean(temp)/(stalls_*4*8))
     sum_of_b =[(number / iter)/(stalls_*4*8) for number in sum_of_queuing_guests] #divide list with number of iterations to get avg
     sum_of_b_correct = sum_of_b[90:631]
     time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
     time_correct = [i for i in range(90,631)]
+    standard = str(truncate(np.std(std_),3))
 
+    mean=str(truncate(np.mean(mean_queue),3))
+    print("std",standard)
+    print("mean",mean)
     plt.plot(time_correct, sum_of_b_correct, label= 'Andel optagede køpladser', color = 'Green')
     mean = str(truncate(np.mean(mean_queue),3))
     plt.xlabel('Tidsskridt')
-    plt.ylabel('% af optagede køpladser')
-    plt.title('Gennenmsnitlig andel af optagede køpladser %s'%mean,fontsize=10)
-    plt.suptitle('%s simulationer med 3 ølboder under koncert' %iter,fontsize=15, y=0.99)
+    plt.ylabel('Andel af optagede køpladser')
+    plt.title('%s simulationer med 3 ølboder under koncert' %iter,fontsize=15, y=0.99)
     plt.legend()
-    print(sum_of_b_correct)
-    print(time_correct)
     return
 plot_queuing(fixed_params, variable_params, Model, iterationer, skridt)
 '''
-'''
+
 
 def plot_transactions(fix_par, var_par, model, iter, steps):
     batch_run = BatchRunner(model,

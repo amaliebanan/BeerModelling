@@ -24,6 +24,33 @@ Here, we define our and set-up our visual grid and our logical algorithm
 
 
 class Model(Model):
+    """
+    Class representing Model
+
+    Attributes
+    ---------
+    N : int
+        Number of agents in grid in current timestep
+    height : int
+        height of grid
+    width : int
+        width of grid
+    grid : grid
+        Visual grid
+    schedule : grid
+        Logical grid
+    datacollector : library ??
+        collects data that we want to analyze
+    time_step : int
+        Indicates current time step
+    minute_count : int
+        Counting minutes
+    hour_count : int
+        Counting hours
+    day_count : int
+        counting days
+
+    """
     def __init__(self, N, height, width):
         super().__init__()
         self.N = N
@@ -48,7 +75,7 @@ class Model(Model):
         self.day_count = 1
 
         
-        #The location of the beer stalls
+        #The location of the beer stalls, according to how many stalls are currently present
         if number_of_stalls == 1:
             self.stall_positions = [(15,44)]
         elif number_of_stalls == 2:
@@ -62,16 +89,16 @@ class Model(Model):
             print("Invalid number of stalls, default # of stalls chosen which is 4")
 
 
-
+        # setting up entre/exit positions
         self.entre_pos = [(5, 0), (6, 0), (5, 49), (6, 49), (35, 0), (35, 49), (36, 0), (36, 49), (49, 35), (49, 20)]
-        self.concert_has_ended = False
+        self.concert_has_ended = False #in the beginning, concert has not started yet
         self.concert_is_on = False
 
-
+        #making lists for employees, desk_positions and busy employees
         self.employees = []
         self.desk_pos = []
         self.busy = []
-
+        #Setting up visuals: scene, guests, stalls, employees and fences.
         self.sceneCoords = [(0,i) for i in range(math.floor(height/2)-7,math.floor(height/2)+6)]
         self.scene_pos = (0,24)
         setUpGuests(self,N)
@@ -86,7 +113,11 @@ class Model(Model):
         setUpEntrePos(self)
 
     def step(self):
-
+        """
+        Function that is called for each time step, that makes sure our model behaves according to our
+        predefined model assumptions.
+        :return: None
+        """
         #Concert is starting
         if self.time_step == 90:
             self.concert_is_on = True
@@ -134,78 +165,130 @@ class Model(Model):
         if self.time_step == 720:
             self.running = False
 
-#Helper functions to collect data and
+#Helper functions to collect data
 def number_of_guests(self):
+    """
+    Function that counts number of guests.
+    :param self:
+    :return: int, number of guests.
+    """
     guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     return len(guests)
 
 def busy_employees(self):
+    """
+    Function that counts number of busy employees
+    :param self:
+    :return: int, number of busy employees
+    """
     employees_busy = [a for a in self.schedule.agents if isinstance(a,ac.employee) and a.busy == True]
     return len(employees_busy)
 
 def number_of_transactions_during_concert(self):
-   # if self.time_step<90:
-    #    agents = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
-     #   deleted = [a for a in self.deleted_agents]
-      #  for a in agents+deleted:
-       #     a.number_of_transaction = 0
-       # return 0
-    #else:
+        """
+        Function that counts number of transactions during concert.
+        :param self:
+        :return:  int, number of transactions during concert.
+        """
         agents = [a.number_of_transaction for a in self.schedule.agents if isinstance(a,ac.guest)]
         deleted = [a.number_of_transaction for a in self.deleted_agents]
         return sum(agents+deleted)
 
 def number_of_transactions_total(self):
+    """
+        Function that counts number of transactions in total.
+        :param self:
+        :return:  int, number of transactions in total.
+        """
     agents = [a.number_of_transaction for a in self.schedule.agents if isinstance(a,ac.guest)]
     deleted = [a.number_of_transaction for a in self.deleted_agents]
     return sum(agents+deleted)
 
 def queuing(self):
+     """
+        Function that counts number of agents queuing
+        :param self:
+        :return:  int, number of agents queuing.
+        """
      agents_queuing = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.queuing == True]
      return len(agents_queuing)
 
 def end_concert(self):
+    """
+    Function ending concert by setting all agents.at_concert= False
+    :param self:
+    :return: None
+    """
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     for a in all_guests:
         a.at_concert = False
 
 def start_concert(self):
+    """
+    Function starting concert by setting all agents.at_concert= True
+    :param self:
+    :return: None
+    """
     all_guests = [a for a in self.schedule.agents if isinstance(a,ac.guest)]
     for a in all_guests:
         a.at_concert = True
 
 def remove_leaving_guests(self):
-    agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True]
+    """
+    Function removing guests that hits the exit/entre positions.
+    :param self:
+    :return: None
+    """
+    agents_that_left = [a for a in self.schedule.agents if isinstance(a,ac.guest) and a.has_left == True] #checking if agent has hit entre pos
     for a in agents_that_left:
         self.deleted_agents.append(a)
-        self.schedule.remove(a)
-        self.grid.remove_agent(a)
+        self.schedule.remove(a) #removing from logical grid
+        self.grid.remove_agent(a) #removing from visual grid
 
- ##Set up functions##
+ #########Set up functions######
+"""
+ Functions below set up the model using Mesa
+"""
 def setUpGuests(self,N):
+    """
+    Function setting up guests
+    :param self:
+    :param N: int, number of guests
+    :return: None
+    """
     for i in range(0,N):
-        newAgent = ac.guest(i, self)
-        self.schedule.add(newAgent)
-        x_,y = self.grid.find_empty()
+        newAgent = ac.guest(i, self) #making N new agents
+        self.schedule.add(newAgent) # Adding new agents to the logical grid
+        x_,y = self.grid.find_empty() #finding empty spots in visual grid
         x = max(3,x_)
-        self.grid.place_agent(newAgent,(x,y))
+        self.grid.place_agent(newAgent,(x,y)) #placing agents in grid
 
 def setUpScene(self):
-    coords = list.copy(self.sceneCoords)
+    """
+    Function setting up scene
+    :param self:
+    :return: None
+    """
+    coords = list.copy(self.sceneCoords) #getting scene coordinates
     for i in range(1000,1000+len(coords)):
-        newAgent = ac.orangeScene(i, self)
-        self.schedule.add(newAgent)
+        newAgent = ac.orangeScene(i, self) #making agent orange scene
+        self.schedule.add(newAgent)  #placing scene on logical grid
         x,y = coords.pop()
-        self.grid.place_agent(newAgent,(x,y))
+        self.grid.place_agent(newAgent,(x,y)) #placing scene
 
 def setUpStalls(self):
-    positions = list.copy(self.stall_positions)
-    counter=0
+    """
+    Function setting up the beer stalls, exits from the stalls and the desks in the beer stalls.
+    :param self:
+    :return: None
+    """
+    positions = list.copy(self.stall_positions) # getting stall positions
+    counter=0 #making counter
     for i in range(2000,2000+len(self.stall_positions)*5,5):
-        newAgent = ac.beerstall(i, self)
-        self.schedule.add(newAgent)
+        newAgent = ac.beerstall(i, self) #making new agent beerstall
+        self.schedule.add(newAgent) #adding beerstall to logical grid
         x,y = positions.pop()
-        self.grid.place_agent(newAgent,(x,y))
+        self.grid.place_agent(newAgent,(x,y)) #placing scene
 
         if y>25: #Where to put stall's exit-positions
             newAgent.stall_exit_pos.append((x - 7, y - 3))
@@ -225,6 +308,11 @@ def setUpStalls(self):
         counter+=1
 
 def setUpEmployees(self):
+    """
+    Function setting up the employees
+    :param self:
+    :return: None
+    """
     teams = []
     positions = reversed(self.stall_positions)
 
@@ -234,31 +322,36 @@ def setUpEmployees(self):
         e3 = (pos[0]+1,pos[1])
         e4 = (pos[0],pos[1]+1)
 
-        team = (e1,e2,e3,e4)
+        team = (e1,e2,e3,e4) #defining teams
         teams.append(team)
 
-    dir = ("s","w","e","n")
+    dir = ("s","w","e","n") #defining directions
 
     counter = 0
     for t in teams:
         stall = [stall for stall in self.schedule.agents if stall.id == 2000+counter][0]
         temp = []
-        for i in range(0,4):
+        for i in range(0,4): #setting up employees and defining their id
             newAgent = ac.employee(stall.id+(i+1), self)
-            direction = dir[i]
-            newAgent.stall = stall
-            self.schedule.add(newAgent)
-            x,y = t[i]
-            self.grid.place_agent(newAgent,(x,y))
-            self.employees.append(newAgent)
+            direction = dir[i] #setting direction
+            newAgent.stall = stall #setting which stall the employee belongs to
+            self.schedule.add(newAgent) #adding new agent to logical grid
+            x,y = t[i] #getting position of team
+            self.grid.place_agent(newAgent,(x,y)) #placing agent at position
+            self.employees.append(newAgent) #adding employee to list
             temp.append(newAgent)
-            newAgent.queue_list = make_queue((x,y), direction)
+            newAgent.queue_list = make_queue((x,y), direction) #setting the queue to the employee accordint to what direction they are standing in
 
         stall.employees = temp
         counter += 5
 
-#The queues' shape are pre-defined, make_queue functions creates a queue based on direction and position on grid
 def make_queue(pos, direction):
+    """
+    The queues' shape are pre-defined, make_queue functions creates a queue based on direction and position on grid
+    :param pos: tuple
+    :param direction: character literal, representing direction
+    :return: list, with positions for queue
+    """
     x,y = pos
     queue_list = []
     if direction == 'n':
@@ -272,28 +365,37 @@ def make_queue(pos, direction):
     return queue_list
 
 def setUpFence(self):
-    #Positions of horizontal and vertical fence
+    """
+    Function making positions of horizontal and vertical fence
+    :param self:
+    :return: None
+    """
     pos_vertical_fence = [(2,i) for i in range(16,33)]
     pos_horizontal_fence = [(0,16),(1,16),(0,32),(1,32)]
     ids = [i for i in range (3000,3000+len(pos_horizontal_fence)+len(pos_vertical_fence))]
 
-    for pos in pos_vertical_fence:
+    for pos in pos_vertical_fence: #vertical fence positions
         newAgent = ac.fence(ids.pop(), self)
-        self.schedule.add(newAgent)
+        self.schedule.add(newAgent) #adding to logical grid
         newAgent.orientation = 'v'
         x,y = pos
-        self.grid.place_agent(newAgent,(x,y))
+        self.grid.place_agent(newAgent,(x,y)) #adding to visual grid
 
-    for pos in pos_horizontal_fence:
+    for pos in pos_horizontal_fence: #horizontal fence positions
         newAgent = ac.fence(ids.pop(), self)
-        self.schedule.add(newAgent)
+        self.schedule.add(newAgent) #adding to logical grid
         newAgent.orientation = 'h'
         x,y = pos
-        self.grid.place_agent(newAgent,(x,y))
+        self.grid.place_agent(newAgent,(x,y)) #adding to visual grid
 
 def setUpEntrePos(self):
+     """
+     Function making entre/exit positions
+     :param self:
+     :return: None
+     """
      ids = [i for i in range (4000, 4000 + len(self.entre_pos))]
      for pos in self.entre_pos:
         newAgent = ac.exit(ids.pop(), self)
-        self.schedule.add(newAgent)
-        self.grid.place_agent(newAgent,pos)
+        self.schedule.add(newAgent) #adding exit to logical grid
+        self.grid.place_agent(newAgent,pos) #adding to visual grid

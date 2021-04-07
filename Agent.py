@@ -263,7 +263,7 @@ class guest(Agent):
         and counting another transaction.
 
         :param self:
-        :return:
+        :return: None
         '''
         employee = self.employer #setting the correct employee serving the customer.
         time_at_counter = dispatch_time() #Generating time it takes to serve customer.
@@ -304,53 +304,76 @@ class guest(Agent):
                     self.drinking_beer = 100 #Drinking parameter D is set to 100 and set drinking to true.
                     self.drinking_ = True
                     if self.model.concert_has_ended == False: #If the concert has not ended
-                        self.model.grid.move_agent(self,self.employer.stall.stall_exit_pos[random.randint(0,1)]) #Find
-                        self.go_to_specific_pos(self.model.scene_pos) #
+                        self.model.grid.move_agent(self,self.employer.stall.stall_exit_pos[random.randint(0,1)]) #Leave stall through exit.
+                        self.go_to_specific_pos(self.model.scene_pos) #go to scene.
                     else: #if the concert has ended
                          if self.entre_position == ():
                             self.entre_position = random.choice(self.model.entre_pos)
-                            self.go_to_specific_pos(self.entre_position, "exit")
+                            self.go_to_specific_pos(self.entre_position, "exit") # Walk towards exit.
                 else:
                     return #Dont move
 
-            #Hvis man er på vej væk fra pladsen (koncerten er slut og man skal hjem)
+            #If the guest is leaving the concert area after the concert
             if self.leave == True:
                 if self.entre_position == ():
-                    pos = random.choice(self.model.entre_pos)
+                    pos = random.choice(self.model.entre_pos) #select an exit to walk towards if the agent doesn't have one already.
                     self.entre_position = pos
-                self.go_to_specific_pos(self.entre_position, "exit")
+                self.go_to_specific_pos(self.entre_position, "exit") #go to exit.
 
 
-            if self.queuing == False:  #Hvis man ikke er i kø
-                 if self.at_concert == False:   #Hvis man ikke deltager i koncerten
-                     if self.going_to_queue == True:   #Hvis man er på vej til en kø, så bare forsæt med det
+            if self.queuing == False:  #If not queuing
+                 if self.at_concert == False:   #If not at concert
+                     if self.going_to_queue == True:   # If going towards queue, keep walking there.
                          self.go_to_queue()
-                     elif self.going_to_queue == False and self.drinking_beer == 0 and self.leave == False:   #Hvis man ik er på vej til kø, man drikker heller ikke øl og man er heller ikke på vej hjem
-                          #Før og efter koncerten, tag de agenter, der er tæt på stall
+                     elif self.going_to_queue == False and self.drinking_beer == 0 and self.leave == False:   # If not walking to queue, drinking beer nor leaving the area
+                          #Before concert has ended, go to closest beer stall
                          if not self.model.concert_has_ended:
                              self.go_to_closest_stall()
-                         else: #Efter koncerten
-                             buy_beer_before_leaving = bernoulli.rvs(0.6)
+                         else: # After concert
+                             buy_beer_before_leaving = bernoulli.rvs(0.6) #buying beer before leaving with 60% probability
                              if buy_beer_before_leaving == 1:
                                  self.go_to_random_stall()
                              else:
                                  self.wander()
                                  self.leave = True
-                 else: #at_concert = True, gå til koncert
+                 else: #at_concert = True, go to concert
                      self.go_to_specific_pos(self.model.scene_pos)
-            else: #queuing = True, gå i køen
+            else: #queuing = True, walk in the queue
                 self.move_in_queue(self.employer)
 
 
 
 class employee(Agent):
+     '''
+     A class to represent a guest.
+
+     Attributes
+     ----------
+     id : int
+        Indicates id of specific agent
+     model : Model
+        Model which the agent belongs to
+     dispatch_time : int
+        Time remaining until employee is finished serving current customer
+     busy : bool
+        Indicates if employee is serving a customer
+     stall : position, tuple
+        Indicates what stall the employee works at
+     at_work : bool
+        Indicates if the employee is currently working
+     self.queue_list : list
+        List containing positions where costumers can queue for this specific employee
+    '''
      def __init__(self, id, model):
+        """
+        Construct the neccessary attributes for the employee object.
+
+        :param id: int
+        :param model: Model object
+        """
         super().__init__(id, model)
         self.id = id
         self.model = model
-
-        self.pouring = False
-        self.pouring_time = 5
 
         self.dispatch = False
         self.dispatch_time = 5
@@ -361,34 +384,67 @@ class employee(Agent):
         self.at_work = True
         self.queue_list = []
 
-    #Returns True is queue is full, False is there is room in queue
      def queue_is_full(self):
-         a = list(chain.from_iterable([self.model.grid.get_cell_list_contents(a) for a in self.queue_list]))
-         if len(a) >= 8:
+         """
+         Checks if the queue is full
+         :return: bool. Returns True is queue is full, False is there is room in queue
+         """
+         a = list(chain.from_iterable([self.model.grid.get_cell_list_contents(a) for a in self.queue_list])) #makes list of taken cells in queue
+         if len(a) >= 8: #checks if queue is full
              return True
          else:
              return False
 
      def queue_is_crowded(self):
-        a = [self.model.grid.is_cell_empty(a) for a in self.queue_list]
-        if sum(a)>4:
+        """
+        Checks if the queue contains more than 4 guests
+        :return: bool. Returns True is queue has 5 or more guests, else false.
+        """
+        a = [self.model.grid.is_cell_empty(a) for a in self.queue_list] #check if cells are empty in queue list
+        if sum(a)>4: #if less than 4 cells are non-empty return false
             return False
         else:
             return True
 
 
      def step(self):
-         if self.at_work == False:
+         """
+         Checks requirements and makes the employee act according to our model assumptions about employee agents.
+         :return:  None
+         """
+         if self.at_work == False: #if not working, don't do anything
              return
 
-         self.dispatch_time = max(0,self.dispatch_time-1)
+         self.dispatch_time = max(0,self.dispatch_time-1) # Count down on remaining time to serve current costumer
 
-         #Kun busy=False, hvis din dispatch_time = 0 OG der ikke er nogen forest i din kø
+         #only busy=False, if dispatch_time = 0 AND no one in the front of the queue.
          if self.dispatch_time==0 and self.model.grid.is_cell_empty(self.queue_list[0]):
              self.busy = False
 
 class beerstall(Agent):
+    """
+    A class to represent the beerstall.
+
+    Attributes
+    ----------
+    id : int
+        Indicates what beerstall we are talking about
+    model : Model
+        The model the agent belongs to
+    employees : list
+        list of employees belonging to the current beerstall
+    queue_starting_pos: list
+        where the queues start
+    stall_exit_pos : list
+        list of positions guests can exit from when finished buying beer from stall
+    """
     def __init__(self, id, model):
+        """
+        Construct the neccessary attributes for the beerstall object.
+
+        :param id: int
+        :param model: Model object
+        """
         super().__init__(id, model)
         self.id = id
         self.model = model
@@ -398,12 +454,18 @@ class beerstall(Agent):
         self.stall_exit_pos = []
 
 class orangeScene(Agent):
+     """
+     A class to represent the orange scene. Visual.
+     """
      def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
         self.model = model
 
 class fence(Agent):
+     """
+     A class to represent the fence. Visual.
+     """
      def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
@@ -411,6 +473,9 @@ class fence(Agent):
         self.orientation = ()
 
 class desk(Agent):
+      """
+       A class to represent the desk. Visual.
+      """
       def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id
@@ -418,6 +483,9 @@ class desk(Agent):
         self.orientation = ()
 
 class exit(Agent):
+     """
+     A class to represent the exit. Visual.
+     """
      def __init__(self, id, model):
         super().__init__(id, model)
         self.id = id

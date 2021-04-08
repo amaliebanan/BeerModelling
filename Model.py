@@ -210,11 +210,11 @@ def number_of_transactions_during_concert(self):
         :param self:
         :return:  int, number of transactions during concert.
         """
-        if self.time_step<123:
-            agents_ = [a for a in self.schedule.agents if isinstance(a, agents.guest)]
-            deleted = [a for a in self.deleted_agents]
-            for a in agents_+deleted:
-                a.number_of_transaction = 0
+       # if self.time_step<123:
+      #      agents_ = [a for a in self.schedule.agents if isinstance(a, agents.guest)]
+         #   deleted = [a for a in self.deleted_agents]
+        #    for a in agents_+deleted:
+          #      a.number_of_transaction = 0
 
         agents_ = [a.number_of_transaction for a in self.schedule.agents if isinstance(a, agents.guest)]
         deleted = [a.number_of_transaction for a in self.deleted_agents]

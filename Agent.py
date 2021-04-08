@@ -133,6 +133,18 @@ class guest(Agent):
                 possible_steps.append(position)
 
          if len(possible_steps) == 0: #If possible empty steps is empty,
+             if pos_type == "scene": #If going to scene
+                  back_up_list = []
+                  all_neighbors = self.model.grid.get_neighbors(self.pos,moore=True,include_center=False)
+                  for n in all_neighbors:
+                      if isinstance(n,guest):
+                         back_up_list.append(n.pos)
+                  try:
+                      pos = random.choice(back_up_list)
+                      self.model.grid.move_agent(self,pos)
+                      return
+                  except:
+                      return
              return
 
          else:
@@ -286,7 +298,7 @@ class guest(Agent):
             else:
                 # When a guest bought beer and the concert is on, go to scene
                 if self.model.concert_has_ended == False:
-                  self.go_to_specific_pos(self.model.scene_pos)
+                  self.go_to_specific_pos(self.model.scene_pos,"scene")
                 else: # If the concert had ended, walk towards exit after buying beer is finished.
                     if self.entre_position == ():
                         pos = random.choice(self.model.entre_pos) #choose random exit.
@@ -305,7 +317,7 @@ class guest(Agent):
                     self.drinking_ = True
                     if self.model.concert_has_ended == False: #If the concert has not ended
                         self.model.grid.move_agent(self,self.employer.stall.stall_exit_pos[random.randint(0,1)]) #Leave stall through exit.
-                        self.go_to_specific_pos(self.model.scene_pos) #go to scene.
+                        self.go_to_specific_pos(self.model.scene_pos,"scene") #go to scene.
                     else: #if the concert has ended
                          if self.entre_position == ():
                             self.entre_position = random.choice(self.model.entre_pos)
@@ -337,7 +349,7 @@ class guest(Agent):
                                  self.wander()
                                  self.leave = True
                  else: #at_concert = True, go to concert
-                     self.go_to_specific_pos(self.model.scene_pos)
+                     self.go_to_specific_pos(self.model.scene_pos,"scene")
             else: #queuing = True, walk in the queue
                 self.move_in_queue(self.employer)
 

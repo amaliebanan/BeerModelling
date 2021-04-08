@@ -5,10 +5,11 @@ import numpy as np
 
 fixed_params = {"width":50, "height": 50} #size of  grid
 variable_params = {"N": range(500,501)}
-iterationer = 100 #iterations to run
-skridt = 720 #time steps in each iteration
+iterationer = 50 #iterations to run
+skridt = 631 #time steps in each iteration
 
 stalls_ = number_of_stalls
+x_,y_ = [],[]
 '''
 from https://realpython.com/python-rounding/#truncation '''
 def truncate(n, decimals=0):
@@ -48,29 +49,31 @@ def plot_busy(fix_par, var_par, model, iter, steps):
             std_.append((data_list[i]["busy"][j])/(stalls_*4))
         mean_busy.append(np.mean(temp)/(stalls_*4))
     sum_of_b =[(number / iter)/(stalls_*4) for number in sum_of_busy] #divide list with number of iterations to get avg
-    sum_of_b_correct = sum_of_b[90:631]
+    sum_of_b_correct = sum_of_b[123:631]
 
-    time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
-    time_correct = [i for i in range(90,631)]
+    time_correct = [i for i in range(123,631)]
+
     plt.plot(time_correct, sum_of_b_correct, label= 'Andel beskæftigede', color = 'Green')
     standard = str(truncate(np.std(std_),3)) #getting std
-
+    x_.append(sum_of_b_correct)
+    y_.append(time_correct)
     mean=str(truncate(np.mean(mean_busy),3)) #getting mean
     print("std",standard)
     print("mean",mean)
     plt.xlabel('Tidsskridt') #setting up plot
     plt.ylabel('Andel af beskæftigede medarbejdere')
-    plt.title('%s simulationer med 1 ølbod under koncert' %iter)
+    plt.title('%s simulationer med 2 ølboder' %iter)
     plt.legend()
 
     return
 
 plot_busy(fixed_params, variable_params, Model, iterationer, skridt) #returning plot
 
+'''
 
 
 '''
-'''
+
 def plot_queuing(fix_par, var_par, model, iter, steps):
     """
     Function running simulations and using BatchRunner function to collect data.
@@ -99,28 +102,28 @@ def plot_queuing(fix_par, var_par, model, iter, steps):
         for j in range(len(data_list[i]["queuing"])):
             sum_of_queuing_guests[j]+=data_list[i]["queuing"][j] #at the right index add number of queuing
             temp.append(data_list[i]["queuing"][j])
-            std_.append(data_list[i]["queuing"][j]/(stalls_*4*8))
-        mean_queue.append(np.mean(temp)/(stalls_*4*8))
-    sum_of_b =[(number / iter)/(stalls_*4*8) for number in sum_of_queuing_guests] #divide list with number of iterations to get avg
-    sum_of_b_correct = sum_of_b[90:631]
+            std_.append(data_list[i]["queuing"][j]/(stalls_*4*5))
+        mean_queue.append(np.mean(temp)/(stalls_*4*5))
+    sum_of_b =[(number / iter)/(stalls_*4*5) for number in sum_of_queuing_guests] #divide list with number of iterations to get avg
+    sum_of_b_correct = sum_of_b[123:631]
     time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
-    time_correct = [i for i in range(90,631)]
+    time_correct = [i for i in range(123,631)]
     standard = str(truncate(np.std(std_),3))
-
     mean=str(truncate(np.mean(mean_queue),3))
     print("std",standard) #getting mean and standard deviation
     print("mean",mean)
+    x_.append(sum_of_b_correct)
+    y_.append(time_correct)
     plt.plot(time_correct, sum_of_b_correct, label= 'Andel optagede køpladser', color = 'Green') #setting up plot
     mean = str(truncate(np.mean(mean_queue),3))
     plt.xlabel('Tidsskridt')
     plt.ylabel('Andel af optagede køpladser')
-    plt.title('%s simulationer med 4 ølboder under koncert' %iter,fontsize=15, y=0.99)
+    plt.title('%s simulationer med 1 ølbod under koncert' %iter,fontsize=15, y=0.99)
     plt.legend()
     return
 plot_queuing(fixed_params, variable_params, Model, iterationer, skridt)
+'''
 
-'''
-'''
 def plot_transactions_during_concert(fix_par, var_par, model, iter, steps):
     """
     Function running simulations and using BatchRunner function to collect data.
@@ -154,12 +157,15 @@ def plot_transactions_during_concert(fix_par, var_par, model, iter, steps):
         max_transactions.append(max(temp_list))
 
     sum_of_b =[(number / iter) for number in sum_of_transactions] #divide list with number of iterations to get avg
-    sum_of_b_correct = sum_of_b[90:631]
+    sum_of_b_correct = sum_of_b[123:631]
     time = [i for i in range(0,steps+1)] #makes list of x-values for plotting
-    time_correct = [i for i in range(90,631)]
+    time_correct = [i for i in range(123,631)]
 
     standard = str(truncate(np.std(max_transactions),3)) #getting standard deviation 
     mean=str(truncate(np.mean(max_transactions),3)) #getting mean
+    x_.append(sum_of_b_correct)
+    y_.append(time_correct)
+    print("yoyoyo",max_transactions)
     print("std",standard)
     print("mean",mean)
     plt.plot(time_correct, sum_of_b_correct, label= '# solgte øl', color = 'Green')
@@ -168,13 +174,13 @@ def plot_transactions_during_concert(fix_par, var_par, model, iter, steps):
 
     plt.xlabel('Tidsskridt') #making plot
     plt.ylabel('Antal solgte øl')
-    plt.title('%s simulationer med 4 ølboder under koncert' %iter,)
+    plt.title('%s simulationer med 1 ølbod under koncert' %iter,)
     plt.legend()
     return
 plot_transactions_during_concert(fixed_params, variable_params, Model, iterationer, skridt)
+print(x_,y_)
 
 '''
-
 def plot_transactions_total(fix_par, var_par, model, iter, steps):
     """
     Function running simulations and using BatchRunner function to collect data.
@@ -226,7 +232,7 @@ def plot_transactions_total(fix_par, var_par, model, iter, steps):
     plt.legend()
     return
 plot_transactions_total(fixed_params, variable_params, Model, iterationer, skridt)
-
+'''
 
 
 

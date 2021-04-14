@@ -4,72 +4,88 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 fixed_params = {"width":50, "height": 50} #size of  grid
-variable_params = {"N": range(500,501)}
-iterationer = 50 #iterations to run
-skridt = 631 #time steps in each iteration
+variable_params = {"N": range(500,501)} #Initialize with 500 guests
+no_of_simulations = 1 #how many simulations to run
+steps = 720 #time steps in each iteration
 
+#Number of stalls, taking from Model
 stalls_ = number_of_stalls
-x_,y_ = [],[]
-'''
-from https://realpython.com/python-rounding/#truncation '''
+what_type_of_analysis = "busy" #Either "busy", "queuing" or "transactions"
+
 def truncate(n, decimals=0):
+    """
+    Function to truncate floats to specified number of decimals, is taking from https://realpython.com/python-rounding/#truncation
+    :param n: float
+    :param decimals: how many decimals
+    :return: float with only specified decimals
+    """
     multiplier = 10 ** decimals
     return int(n * multiplier) / multiplier
 
-'''
-def plot_busy(fix_par, var_par, model, iter, steps):
+
+def plot_(fix_par, var_par, model, no_of_simulations, steps,whatType = None):
+
     """
-    Function running simulations and using BatchRunner function to collect data.
-    Returns a plot of number of busy employees divided by total number of employees as a function of timesteps.
+    Function running simulations and using BatchRunner module to save data from our DataCollector-object
+    Returns a plot as a function of timesteps.
+    What to plot is specified in the whatType-parameter (busy, queuing or transactions)
     :param fix_par: dictionary, size of grid
     :param var_par: dictionary, number of agents at start
     :param model: Model
     :param iter: int
     :param steps: int
+    :param whatType: None or string, what to plot (busy, queuing, transactions)
     :return: plot
     """
-    batch_run = BatchRunner(model, #running batchrunner to collect data
+    if whatType is None:  #Set default
+        whatType = "busy"
+
+    batch_run = BatchRunner(model,
     variable_parameters=var_par,
     fixed_parameters=fix_par,
-    iterations=iter,
-    max_steps=steps,
-    model_reporters={"busy": lambda m: busy_employees(m)}, )
-    batch_run.run_all() #run batchrunner
+    iterations=no_of_simulations,
+    max_steps=steps)
+    batch_run.run_all()
 
-    data_list = list(batch_run.get_collector_model().values()) # saves batchrunner data in a list
+    data_ = list(batch_run.get_collector_model().values()) #Retrieve the data saved in the batchrunner and save it as a matrix
+    y_values = np.zeros(steps+1)  #makes list for y-values
 
-    sum_of_busy = [0]*(steps+1) #makes list for y-values
-    mean_busy=[]
-    std_ = []
-    for i in range(len(data_list)):
-        temp=[]
-        for j in range(len(data_list[i]["busy"])):
-            sum_of_busy[j]+=data_list[i]["busy"][j] #at the right index add number of busy
-            temp.append(data_list[i]["busy"][j])
-            std_.append((data_list[i]["busy"][j])/(stalls_*4))
-        mean_busy.append(np.mean(temp)/(stalls_*4))
-    sum_of_b =[(number / iter)/(stalls_*4) for number in sum_of_busy] #divide list with number of iterations to get avg
-    sum_of_b_correct = sum_of_b[123:631]
+    for j in range(len(data_[0][whatType])):
+        y_values[j] += data_[0][whatType][j] #at the right index add number of busy
 
-    time_correct = [i for i in range(123,631)]
+    #Adjust y-values accordingly to what type of analysis we are running
+    correct_y_values = []
 
-    plt.plot(time_correct, sum_of_b_correct, label= 'Andel beskæftigede', color = 'Green')
-    standard = str(truncate(np.std(std_),3)) #getting std
-    x_.append(sum_of_b_correct)
-    y_.append(time_correct)
-    mean=str(truncate(np.mean(mean_busy),3)) #getting mean
-    print("std",standard)
-    print("mean",mean)
-    plt.xlabel('Tidsskridt') #setting up plot
-    plt.ylabel('Andel af beskæftigede medarbejdere')
-    plt.title('%s simulationer med 2 ølboder' %iter)
+    display_string,label,title = "", "",""
+    if whatType == "busy":
+        correct_y_values = [(n / no_of_simulations)/(stalls_*4) for n in y_values][123:631]
+        display_string = "Andel af beskræftigede frivillige"
+        label = str(number_of_stalls) + " ølboder"
+        title = display_string + " ved " + str(no_of_simulations)+ " simulation(er) med " + str(number_of_stalls) + " ølbod(er) åbne"
+    elif whatType == "queuing":
+        correct_y_values =[(n / no_of_simulations)/(stalls_*4*5) for n in y_values][123:631]
+        display_string = "Andel af optagede køpladser"
+        label = str(number_of_stalls) + " ølboder"
+        title = display_string + " ved " + str(no_of_simulations)+ " simulation(er) med " + str(number_of_stalls) + " ølbod(er) åbne"
+    elif whatType == "transactions":
+        correct_y_values = [(n / no_of_simulations) for n in y_values][123:631]
+        display_string = "Antal solgte øl"
+        label = str(number_of_stalls) + " ølboder"
+        title = display_string + " ved " + str(no_of_simulations)+ " simulation(er) med " + str(number_of_stalls) + " ølbod(er) åbne"
+
+    x_during_concert = [i for i in range(123,631)]
+    plt.plot(x_during_concert,correct_y_values, label= label, color = 'Green')
+    plt.xlabel('Tidsskridt')
+    plt.ylabel(display_string)
+    plt.ylim(0,1)
+    plt.xlim(123,630)
+    plt.title(title)
     plt.legend()
-
     return
 
-plot_busy(fixed_params, variable_params, Model, iterationer, skridt) #returning plot
+plot_(fixed_params, variable_params, Model, no_of_simulations, steps,what_type_of_analysis) #Laver plot
+plt.show()
 
-'''
 
 
 '''
@@ -124,6 +140,7 @@ def plot_queuing(fix_par, var_par, model, iter, steps):
 plot_queuing(fixed_params, variable_params, Model, iterationer, skridt)
 '''
 
+'''
 def plot_transactions_during_concert(fix_par, var_par, model, iter, steps):
     """
     Function running simulations and using BatchRunner function to collect data.
@@ -181,6 +198,8 @@ plot_transactions_during_concert(fixed_params, variable_params, Model, iteration
 print(x_,y_)
 
 '''
+
+'''
 def plot_transactions_total(fix_par, var_par, model, iter, steps):
     """
     Function running simulations and using BatchRunner function to collect data.
@@ -235,6 +254,4 @@ plot_transactions_total(fixed_params, variable_params, Model, iterationer, skrid
 '''
 
 
-
-plt.show()
 

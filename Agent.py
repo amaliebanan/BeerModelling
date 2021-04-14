@@ -1,8 +1,8 @@
 from mesa import Agent, Model
-import math
 from itertools import chain
 from scipy.stats import truncnorm,bernoulli
 import random
+import math
 
 def dispatch_time():
     '''

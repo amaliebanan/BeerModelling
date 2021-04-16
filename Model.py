@@ -57,8 +57,7 @@ class Model(Model):
         #Datacollector to collect our data, here we specify which system state we want to track throughout simulation
         self.datacollector = DataCollector(model_reporters={"busy": lambda m: busy_employees(self),
                                                             "queuing": lambda m: queuing(self),
-                                                            "transaction": lambda m: number_of_transactions_during_concert(self),
-                                                            "transaction_total":lambda m: number_of_transactions_total(self)})
+                                                            "transaction": lambda m: number_of_transactions_during_concert(self)})
         #Initiate time, minute and hour-count
         self.time_step = 1
         self.minute_count = 1
@@ -189,16 +188,6 @@ def number_of_transactions_during_concert(self):
         agents_ = [a.number_of_transaction for a in self.schedule.agents if isinstance(a, agents.guest)]
         deleted = [a.number_of_transaction for a in self.deleted_agents]
         return sum(agents_+deleted)
-
-def number_of_transactions_total(self):
-    """
-        Function that counts number of transactions in total.
-        :param self:
-        :return:  int, number of transactions in total.
-        """
-    agents_ = [a.number_of_transaction for a in self.schedule.agents if isinstance(a, agents.guest)]
-    deleted = [a.number_of_transaction for a in self.deleted_agents]
-    return sum(agents_+deleted)
 
 def queuing(self):
      """
